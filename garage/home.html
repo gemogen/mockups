@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Гараж — Финал A · Тихий Linear</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+  :root{
+    /* Linear A — финальные токены */
+    --bg:#080A0D;          /* фон страниц */
+    --card:#0D0E11;        /* карточки/плитки */
+    --cardline:#1E2028;    /* hairline-рамка карточек */
+    --line:#1E2028;        /* разделители */
+    --tx:#F4F6F8;          /* основной текст */
+    --tx2:#C9CDD4;         /* вторичный текст */
+    --mut:#6B7280;         /* мут текст */
+    --acc:#5865F2;         /* акцент индиго */
+    --ok:#43D68A; --warn:#FFB020; --danger:#E5604D;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased;font-feature-settings:"tnum"}
+  body{background:#020203;color:var(--tx);font-family:'Inter',sans-serif;padding:44px 30px 90px}
+  .page-head{max-width:1500px;margin:0 auto 40px}
+  .page-head h1{font-size:28px;font-weight:800;letter-spacing:-.7px}
+  .page-head p{color:var(--mut);font-size:13.5px;margin-top:8px;line-height:1.6;max-width:780px}
+  .tokens{display:flex;gap:7px;flex-wrap:wrap;margin-top:16px}
+  .tok{display:flex;align-items:center;gap:7px;background:#0c0d11;border:1px solid #1c1e25;border-radius:999px;padding:6px 12px;font-size:11px;color:var(--mut);font-weight:600}
+  .sw{width:13px;height:13px;border-radius:4px}
+
+  .frames{display:flex;gap:24px;flex-wrap:wrap;max-width:1500px;margin:0 auto}
+
+  /* Phone shell — iPhone 14 ratio 390×844 → scaled 300×650 */
+  .phone{width:312px;flex:0 0 auto;border-radius:46px;padding:11px;position:relative;
+    background:linear-gradient(160deg,#23252c,#0c0d10);
+    box-shadow:0 40px 90px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.04)}
+  .scr{border-radius:36px;overflow:hidden;height:650px;position:relative;background:var(--bg)}
+  .island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:90px;height:25px;background:#000;border-radius:14px;z-index:50}
+  .statusbar{height:46px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 24px 6px;font-size:13px;font-weight:600;position:relative;z-index:10}
+  .statusbar .r{display:flex;gap:6px;align-items:center}
+  .caption{text-align:center;font-size:11px;color:var(--mut);font-weight:700;letter-spacing:.5px;margin-top:12px;text-transform:uppercase}
+
+  .body{height:604px;overflow:hidden;position:relative}
+  .pad{padding:6px 18px 18px}
+  .scroll{height:100%;overflow-y:auto}
+
+  /* type scale: 24/18/15/13/11 */
+  .ovl{font-size:11px;font-weight:700;letter-spacing:1.4px;color:var(--mut);text-transform:uppercase}
+  .h1{font-size:24px;font-weight:800;letter-spacing:-.6px}
+  .h2{font-size:18px;font-weight:800;letter-spacing:-.3px}
+  .t15{font-size:15px;font-weight:600}
+  .t13{font-size:13px;font-weight:600}
+  .t11{font-size:11px;font-weight:600;color:var(--mut)}
+
+  .row{display:flex;align-items:center}
+  .gear{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;position:relative;background:rgba(255,255,255,.04);border:1px solid var(--cardline)}
+  .dot{position:absolute;top:-3px;right:-3px;width:11px;height:11px;border-radius:50%;background:var(--acc);border:2.5px solid var(--bg);box-shadow:0 0 8px rgba(88,101,242,.7)}
+  .navbtn{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--card);border:1px solid var(--cardline)}
+  .icbox{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;flex:0 0 auto}
+
+  /* car card */
+  .card{background:var(--card);border:0.5px solid var(--cardline);border-radius:20px;overflow:hidden}
+  .carhdr{height:128px;position:relative;overflow:hidden}
+  .silhouette{position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);width:236px;opacity:.95}
+
+  /* tabs */
+  .tabs{display:flex;gap:18px;border-bottom:0.5px solid var(--line);margin:14px 0 14px}
+  .tabs span{font-size:13px;font-weight:700;color:var(--mut);padding-bottom:11px;position:relative;white-space:nowrap}
+  .tabs span.on{color:var(--tx)}
+  .tabs span.on::after{content:"";position:absolute;left:0;right:0;bottom:-0.5px;height:2px;background:var(--acc);border-radius:2px}
+
+  /* settings rows */
+  .scard{background:var(--card);border:0.5px solid var(--cardline);border-radius:18px;overflow:hidden}
+  .srow{display:flex;align-items:center;gap:13px;padding:15px 15px;min-height:60px}
+  .srow + .srow{border-top:0.5px solid var(--line)}
+  .toggle{width:44px;height:26px;border-radius:999px;flex:0 0 auto;position:relative;background:var(--acc)}
+  .toggle.off{background:#2b2e36}
+  .toggle i{position:absolute;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+  .toggle i{left:21px} .toggle.off i{left:3px}
+  .slabel{font-size:11px;font-weight:700;color:var(--mut);letter-spacing:1px;margin:0 0 9px 3px;text-transform:uppercase}
+
+  /* inputs */
+  .field{background:var(--card);border:0.5px solid var(--cardline);border-radius:14px;padding:13px 14px;margin-bottom:11px}
+  .field .lbl{font-size:11px;font-weight:700;color:var(--mut);letter-spacing:.4px;margin-bottom:6px;display:flex;align-items:center;gap:7px}
+  .field .val{font-size:15px;font-weight:600;color:var(--tx)}
+  .field .val.ph{color:#4a4f59}
+  .ocrbadge{font-size:9px;font-weight:800;letter-spacing:.6px;color:var(--acc);background:rgba(88,101,242,.12);border:0.5px solid rgba(88,101,242,.3);padding:2px 7px;border-radius:999px}
+  .pencil{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:rgba(88,101,242,.10);border:0.5px solid rgba(88,101,242,.25);flex:0 0 auto}
+
+  .btn{background:var(--acc);color:#fff;border-radius:14px;padding:15px;text-align:center;font-size:15px;font-weight:700}
+  .btn.ghost{background:var(--card);border:0.5px solid var(--cardline);color:var(--tx)}
+
+  .tag{font-size:10px;font-weight:800;letter-spacing:.5px;padding:3px 9px;border-radius:999px}
+  .tag.warn{color:var(--warn);background:rgba(255,176,32,.12)}
+  .tag.ok{color:var(--ok);background:rgba(67,214,138,.12)}
+  .tag.dng{color:var(--danger);background:rgba(229,96,77,.12)}
+
+  ::-webkit-scrollbar{width:0;height:0}
+</style>
+</head>
+<body>
+
+<div class="page-head">
+  <h1>Гараж — Финал · Вариант A «Тихий Linear»</h1>
+  <p>Все ключевые экраны в единой Linear-ДНК: почти-чёрный фон #080A0D, hairline-рамки 0.5px, сдержанный индиго #5865F2, статус читается формой и тегом — не заливкой. Всё выровнено по сетке 4/8. Шкала текста 24/18/15/13/11.</p>
+  <div class="tokens">
+    <span class="tok"><i class="sw" style="background:#080A0D"></i>bg #080A0D</span>
+    <span class="tok"><i class="sw" style="background:#0D0E11"></i>card #0D0E11</span>
+    <span class="tok"><i class="sw" style="background:#1E2028;border:1px solid #2a2d36"></i>line #1E2028</span>
+    <span class="tok"><i class="sw" style="background:#5865F2"></i>acc #5865F2</span>
+    <span class="tok"><i class="sw" style="background:#6B7280"></i>mut #6B7280</span>
+    <span class="tok"><i class="sw" style="background:#43D68A"></i>ok</span>
+    <span class="tok"><i class="sw" style="background:#FFB020"></i>warn</span>
+    <span class="tok"><i class="sw" style="background:#E5604D"></i>danger</span>
+    <span class="tok">Inter</span>
+  </div>
+</div>
+
+<div class="frames">
+
+  <!-- ═══ 1 · HOME ═══ -->
+  <div><div class="phone"><div class="scr">
+    <div class="island"></div>
+    <div class="statusbar"><span>9:41</span><span class="r"><i data-lucide="signal" width="16"></i><i data-lucide="wifi" width="16"></i><i data-lucide="battery-full" width="20"></i></span></div>
+    <div class="body"><div class="scroll"><div class="pad">
+      <div class="row" style="justify-content:space-between;margin-bottom:20px;margin-top:4px">
+        <div><div class="ovl">Мой гараж</div><div class="h1" style="margin-top:6px">Мои машины</div></div>
+        <div class="gear"><i data-lucide="settings" width="20" color="#6B7280"></i><span class="dot"></span></div>
+      </div>
+
+      <!-- car card 1 (M5) -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="carhdr" style="background:linear-gradient(135deg,#16181f,#1A1C22)">
+          <div style="padding:15px"><div class="h2">M5 Competition</div><div class="t11" style="margin-top:3px">F90 · 4.4 V8</div></div>
+          <svg class="silhouette" viewBox="0 0 240 70" fill="none"><path d="M10 50 L30 50 C35 35 50 30 70 30 L120 28 C140 26 160 30 180 34 L215 40 C228 42 232 48 230 52 L10 52 Z" fill="#3a4154"/><circle cx="60" cy="54" r="11" fill="#15171d" stroke="#2f3545" stroke-width="3"/><circle cx="190" cy="54" r="11" fill="#15171d" stroke="#2f3545" stroke-width="3"/></svg>
+        </div>
+        <div style="padding:15px">
+          <div class="row" style="justify-content:space-between;align-items:flex-end">
+            <div><div class="ovl">Пробег</div><div style="font-size:24px;font-weight:800;letter-spacing:-.6px;margin-top:4px">31 240 <span style="font-size:13px;color:var(--mut);font-weight:500">км</span></div></div>
+            <!-- 32mm ring -->
+            <svg width="46" height="46" viewBox="0 0 46 46"><circle cx="23" cy="23" r="20" fill="none" stroke="#1E2028" stroke-width="3"/><circle cx="23" cy="23" r="20" fill="none" stroke="#FFB020" stroke-width="3" stroke-linecap="round" stroke-dasharray="125.6" stroke-dashoffset="35" transform="rotate(-90 23 23)"/><text x="23" y="27" text-anchor="middle" font-size="12" font-weight="800" fill="#FFB020">72%</text></svg>
+          </div>
+          <div style="border-top:0.5px solid var(--line);margin:13px 0 4px"></div>
+          <div style="display:flex;flex-direction:column;gap:13px;margin-top:8px">
+            <div class="row" style="gap:9px"><div style="width:6px;height:6px;border-radius:50%;background:var(--warn);flex:0 0 auto"></div><div style="flex:1;white-space:nowrap" class="t13">Масло</div><div class="t13" style="color:var(--tx);white-space:nowrap">через 1 800 км</div><span class="tag warn" style="margin-left:9px;flex:0 0 auto">СКОРО</span></div>
+            <div class="row" style="gap:9px"><div style="width:6px;height:6px;border-radius:50%;background:var(--ok);flex:0 0 auto"></div><div style="flex:1;white-space:nowrap" class="t13">Шины · лето</div><div class="t13" style="color:var(--tx);white-space:nowrap">Michelin PS4</div><span class="tag ok" style="margin-left:9px;flex:0 0 auto">ОК</span></div>
+            <div class="row" style="gap:9px"><div style="width:6px;height:6px;border-radius:50%;background:var(--danger);flex:0 0 auto"></div><div style="flex:1;white-space:nowrap" class="t13">ОСАГО</div><div class="t13" style="color:var(--danger);white-space:nowrap">нет полиса</div><span class="tag dng" style="margin-left:9px;flex:0 0 auto">ПОРА</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- car card 2 (X6 M) compact -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="carhdr" style="height:104px;background:linear-gradient(135deg,#171318,#221A22)">
+          <div style="padding:15px"><div class="h2">X6 M</div><div class="t11" style="margin-top:3px">F96 · 4.4 V8</div></div>
+          <svg class="silhouette" style="width:210px" viewBox="0 0 240 70" fill="none"><path d="M10 50 L28 50 C34 32 52 26 74 26 L118 24 C142 23 162 28 184 33 L216 40 C229 42 233 48 231 52 L10 52 Z" fill="#4a3a48"/><circle cx="60" cy="54" r="11" fill="#1d171c" stroke="#3a2f38" stroke-width="3"/><circle cx="190" cy="54" r="11" fill="#1d171c" stroke="#3a2f38" stroke-width="3"/></svg>
+        </div>
+        <div style="padding:13px 15px;display:flex;justify-content:space-between;align-items:center">
+          <div><div class="ovl">Пробег</div><div style="font-size:19px;font-weight:800;margin-top:3px">18 720 <span style="font-size:12px;color:var(--mut);font-weight:500">км</span></div></div>
+          <span class="tag ok">Всё в норме</span>
+        </div>
+      </div>
+
+      <div style="border:1px dashed #262a33;border-radius:18px;padding:17px;text-align:center;color:var(--mut);font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:7px"><i data-lucide="plus" width="17"></i> Добавить машину</div>
+    </div></div></div>
+  </div></div><div class="caption">1 · Главный</div></div>
+
+  <!-- ═══ 2 · CAR DETAIL ═══ -->
+  <div><div class="phone"><div class="scr">
+    <div class="island"></div>
+    <div class="statusbar"><span>9:41</span><span class="r"><i data-lucide="signal" width="16"></i><i data-lucide="wifi" width="16"></i><i data-lucide="battery-full" width="20"></i></span></div>
+    <div class="body"><div class="scroll">
+      <!-- collapsing header -->
+      <div style="height:188px;position:relative;background:linear-gradient(160deg,#1A1C22,#0D0E11)">
+        <div style="position:absolute;top:6px;left:14px;right:14px;display:flex;justify-content:space-between;z-index:5">
+          <div class="navbtn" style="background:rgba(0,0,0,.3)"><i data-lucide="chevron-left" width="19"></i></div>
+          <div class="navbtn" style="background:rgba(0,0,0,.3)"><i data-lucide="gauge" width="18"></i></div>
+        </div>
+        <svg class="silhouette" style="bottom:auto;top:44px;width:206px;opacity:.92" viewBox="0 0 240 70" fill="none"><path d="M10 50 L30 50 C35 35 50 30 70 30 L120 28 C140 26 160 30 180 34 L215 40 C228 42 232 48 230 52 L10 52 Z" fill="#3a4154"/><circle cx="60" cy="54" r="11" fill="#15171d" stroke="#2f3545" stroke-width="3"/><circle cx="190" cy="54" r="11" fill="#15171d" stroke="#2f3545" stroke-width="3"/></svg>
+        <div style="position:absolute;left:18px;bottom:16px">
+          <div class="ovl" style="color:#7d828c">BMW</div>
+          <div style="font-size:26px;font-weight:800;letter-spacing:-.7px;margin-top:2px">M5 Competition</div>
+          <div style="margin-top:7px;display:flex;align-items:baseline;gap:8px"><span style="font-size:28px;font-weight:800;letter-spacing:-1px">31 240</span><span style="font-size:12px;color:var(--mut)">≈ 42 км/день</span></div>
+        </div>
+      </div>
+      <div class="pad" style="padding-top:0">
+        <div class="tabs"><span class="on">Правила ТО</span><span>История</span><span>Документы</span></div>
+        <div style="background:rgba(255,176,32,.08);border:0.5px solid rgba(255,176,32,.28);border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:center;margin-bottom:16px"><i data-lucide="alert-triangle" width="17" color="#FFB020"></i><div class="t13" style="color:var(--warn)">Следующее ТО — через 1 800 км</div></div>
+        <div class="slabel">Правила ТО · 3</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="card" style="padding:14px"><div class="row" style="justify-content:space-between"><div class="row" style="gap:12px"><div class="icbox" style="background:rgba(255,176,32,.1)"><i data-lucide="droplet" width="17" color="#FFB020"></i></div><div><div class="t15">Замена масла</div><div class="t11" style="color:var(--warn);margin-top:2px">Осталось 1 800 км</div></div></div><span class="tag warn">СКОРО</span></div></div>
+          <div class="card" style="padding:14px"><div class="row" style="justify-content:space-between"><div class="row" style="gap:12px"><div class="icbox" style="background:rgba(67,214,138,.1)"><i data-lucide="disc" width="17" color="#43D68A"></i></div><div><div class="t15">Тормозные колодки</div><div class="t11" style="margin-top:2px">Осталось 14 000 км</div></div></div><span class="tag ok">ОК</span></div></div>
+          <div class="card" style="padding:14px"><div class="row" style="justify-content:space-between"><div class="row" style="gap:12px"><div class="icbox" style="background:rgba(67,214,138,.1)"><i data-lucide="wind" width="17" color="#43D68A"></i></div><div><div class="t15">Салонный фильтр</div><div class="t11" style="margin-top:2px">Осталось 9 200 км</div></div></div><span class="tag ok">ОК</span></div></div>
+        </div>
+        <div class="btn ghost" style="margin-top:14px;display:flex;align-items:center;justify-content:center;gap:8px"><i data-lucide="plus" width="17"></i> Добавить правило</div>
+      </div>
+    </div></div>
+  </div></div><div class="caption">2 · Машина (3 таба)</div></div>
+
+  <!-- ═══ 3 · SETTINGS ═══ -->
+  <div><div class="phone"><div class="scr">
+    <div class="island"></div>
+    <div class="statusbar"><span>9:41</span><span class="r"><i data-lucide="signal" width="16"></i><i data-lucide="wifi" width="16"></i><i data-lucide="battery-full" width="20"></i></span></div>
+    <div class="body"><div class="scroll"><div class="pad">
+      <div class="row" style="gap:12px;margin:4px 0 20px"><div class="navbtn"><i data-lucide="chevron-left" width="19"></i></div><div class="h2" style="font-size:20px">Настройки</div></div>
+
+      <div class="slabel">Внешний вид</div>
+      <div class="scard" style="margin-bottom:22px">
+        <div class="srow"><div class="icbox" style="background:rgba(88,101,242,.12)"><i data-lucide="moon" width="18" color="#5865F2"></i></div><div style="flex:1"><div class="t15">Тёмная тема</div></div><div class="toggle"><i></i></div></div>
+      </div>
+
+      <div class="slabel">Уведомления</div>
+      <div class="scard" style="margin-bottom:22px">
+        <div class="srow"><div class="icbox" style="background:rgba(255,176,32,.12)"><i data-lucide="wrench" width="17" color="#FFB020"></i></div><div style="flex:1"><div class="t15">ТО и обслуживание</div><div class="t11" style="margin-top:2px">Напоминание о сроке</div></div><div class="toggle"><i></i></div></div>
+        <div class="srow"><div class="icbox" style="background:rgba(88,101,242,.12)"><i data-lucide="shield" width="17" color="#5865F2"></i></div><div style="flex:1"><div class="t15">Страховки</div><div class="t11" style="margin-top:2px">КАСКО / ОСАГО</div></div><div class="toggle"><i></i></div></div>
+        <div class="srow"><div class="icbox" style="background:rgba(67,214,138,.12)"><i data-lucide="route" width="17" color="#43D68A"></i></div><div style="flex:1"><div class="t15">Уведомления о пробеге</div><div class="t11" style="margin-top:2px">Напомнить внести пробег</div></div><div class="toggle off"><i></i></div></div>
+      </div>
+
+      <div class="slabel">О приложении</div>
+      <div class="scard" style="margin-bottom:22px">
+        <div class="srow"><div class="icbox" style="background:rgba(88,101,242,.14);width:40px;height:40px"><i data-lucide="car-front" width="19" color="#5865F2"></i></div><div style="flex:1"><div class="t15" style="font-weight:800">Гараж</div><div class="t11">ТО · страховки · история</div></div></div>
+        <!-- update status line — has update -->
+        <div class="srow"><div class="icbox" style="background:rgba(88,101,242,.12)"><i data-lucide="arrow-up-circle" width="18" color="#5865F2"></i></div><div style="flex:1"><div class="t15" style="color:var(--acc)">Обновление до версии 0.8.0</div><div class="t11" style="margin-top:2px">Текущая версия 0.7.2</div></div><i data-lucide="chevron-right" width="17" color="#6B7280"></i></div>
+        <div class="srow"><div class="icbox" style="background:rgba(255,255,255,.04)"><i data-lucide="scroll-text" width="17" color="#6B7280"></i></div><div style="flex:1"><div class="t15">Логи и диагностика</div></div><i data-lucide="chevron-right" width="17" color="#6B7280"></i></div>
+      </div>
+
+      <div class="slabel" style="color:var(--danger)">Опасная зона</div>
+      <div class="scard" style="border-color:rgba(229,96,77,.22)">
+        <div class="srow"><div class="icbox" style="background:rgba(229,96,77,.1)"><i data-lucide="trash-2" width="17" color="#E5604D"></i></div><div style="flex:1"><div class="t15" style="color:var(--danger)">Удалить все данные</div></div></div>
+      </div>
+    </div></div></div>
+  </div></div><div class="caption">3 · Настройки (статус-строка)</div></div>
+
+  <!-- ═══ 4 · ADD CAR ═══ -->
+  <div><div class="phone"><div class="scr">
+    <div class="island"></div>
+    <div class="statusbar"><span>9:41</span><span class="r"><i data-lucide="signal" width="16"></i><i data-lucide="wifi" width="16"></i><i data-lucide="battery-full" width="20"></i></span></div>
+    <div class="body"><div class="scroll"><div class="pad">
+      <div class="row" style="gap:12px;margin:4px 0 20px"><div class="navbtn"><i data-lucide="x" width="19"></i></div><div class="h2" style="font-size:20px">Новая машина</div></div>
+
+      <!-- VIN scan banner -->
+      <div style="background:rgba(88,101,242,.07);border:0.5px solid rgba(88,101,242,.28);border-radius:16px;padding:14px;display:flex;gap:12px;align-items:center;margin-bottom:20px">
+        <div class="icbox" style="background:rgba(88,101,242,.14);width:40px;height:40px"><i data-lucide="scan-line" width="20" color="#5865F2"></i></div>
+        <div style="flex:1"><div class="t15">Сканировать СТС</div><div class="t11" style="margin-top:2px">Заполним поля автоматически</div></div>
+        <i data-lucide="chevron-right" width="17" color="#5865F2"></i>
+      </div>
+
+      <div class="slabel">Основное</div>
+      <div class="field"><div class="lbl">Марка</div><div class="val">BMW</div></div>
+      <div class="field"><div class="lbl">Модель</div><div class="val">M5 Competition</div></div>
+      <div class="row" style="gap:11px">
+        <div class="field" style="flex:1"><div class="lbl">Год</div><div class="val">2021</div></div>
+        <div class="field" style="flex:1"><div class="lbl">Поколение</div><div class="val">F90</div></div>
+      </div>
+      <div class="field"><div class="lbl">VIN</div><div class="val ph">WBSJF0C0...</div></div>
+
+      <div class="slabel" style="margin-top:14px">Текущий пробег</div>
+      <div class="field"><div class="lbl">Пробег, км</div><div class="val">31 240</div></div>
+
+      <div class="slabel" style="margin-top:14px">Цвет</div>
+      <div style="display:flex;gap:10px;margin-bottom:24px">
+        <div style="width:38px;height:38px;border-radius:11px;background:#1c1f27;border:2px solid var(--acc)"></div>
+        <div style="width:38px;height:38px;border-radius:11px;background:#e8e8ea"></div>
+        <div style="width:38px;height:38px;border-radius:11px;background:#7a1f24"></div>
+        <div style="width:38px;height:38px;border-radius:11px;background:#1f3a6b"></div>
+        <div style="width:38px;height:38px;border-radius:11px;background:#4a4d52"></div>
+      </div>
+
+      <div class="btn">Сохранить машину</div>
+    </div></div></div>
+  </div></div><div class="caption">4 · Добавить машину</div></div>
+
+  <!-- ═══ 5 · ADD SERVICE RECORD (после OCR) ═══ -->
+  <div><div class="phone"><div class="scr">
+    <div class="island"></div>
+    <div class="statusbar"><span>9:41</span><span class="r"><i data-lucide="signal" width="16"></i><i data-lucide="wifi" width="16"></i><i data-lucide="battery-full" width="20"></i></span></div>
+    <div class="body"><div class="scroll"><div class="pad">
+      <div class="row" style="gap:12px;margin:4px 0 18px"><div class="navbtn"><i data-lucide="x" width="19"></i></div><div class="h2" style="font-size:20px">Запись о ТО</div></div>
+
+      <!-- OCR success banner -->
+      <div style="background:rgba(67,214,138,.07);border:0.5px solid rgba(67,214,138,.28);border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:center;margin-bottom:20px"><i data-lucide="check-circle-2" width="18" color="#43D68A"></i><div class="t13" style="color:var(--ok)">Чек распознан · проверьте поля</div></div>
+
+      <div class="slabel">Данные из чека</div>
+      <!-- field with OCR badge + pencil -->
+      <div class="field">
+        <div class="lbl">Работа <span class="ocrbadge">ИЗ ЧЕКА</span></div>
+        <div class="row"><div class="val" style="flex:1">Замена масла и фильтра</div><div class="pencil"><i data-lucide="pencil" width="15" color="#5865F2"></i></div></div>
+      </div>
+      <div class="field">
+        <div class="lbl">Дата <span class="ocrbadge">ИЗ ЧЕКА</span></div>
+        <div class="row"><div class="val" style="flex:1">12.05.2026</div><div class="pencil"><i data-lucide="pencil" width="15" color="#5865F2"></i></div></div>
+      </div>
+      <div class="field">
+        <div class="lbl">Сумма <span class="ocrbadge">ИЗ ЧЕКА</span></div>
+        <div class="row"><div class="val" style="flex:1">12 400 ₽</div><div class="pencil"><i data-lucide="pencil" width="15" color="#5865F2"></i></div></div>
+      </div>
+      <div class="field">
+        <div class="lbl">Сервис <span class="ocrbadge">ИЗ ЧЕКА</span></div>
+        <div class="row"><div class="val" style="flex:1">BMW Авилон</div><div class="pencil"><i data-lucide="pencil" width="15" color="#5865F2"></i></div></div>
+      </div>
+
+      <div class="slabel" style="margin-top:14px">Дополнительно</div>
+      <div class="field"><div class="lbl">Пробег на момент ТО, км</div><div class="val">29 440</div></div>
+      <div class="field" style="margin-bottom:24px"><div class="lbl">Заметка</div><div class="val ph">Необязательно</div></div>
+
+      <div class="btn">Сохранить запись</div>
+    </div></div></div>
+  </div></div><div class="caption">5 · Запись ТО (после OCR)</div></div>
+
+</div>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>

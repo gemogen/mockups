@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0b0e">
+<title>Галерея макетов</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#08090c;
+    --bg-2:#0d0f14;
+    --surface:#13161d;
+    --surface-2:#171b24;
+    --surface-hi:#1c212c;
+    --line:rgba(255,255,255,.07);
+    --line-2:rgba(255,255,255,.12);
+    --txt:#f3f5f9;
+    --txt-2:#a4abba;
+    --txt-3:#6c7382;
+    --accent:#5b8cff;
+    --accent-2:#7aa2ff;
+    --accent-glow:rgba(91,140,255,.30);
+    --ok:#34d39a;
+    --warn:#f5b945;
+    --r-lg:24px;
+    --r-md:18px;
+    --r-sm:12px;
+    --shadow:0 18px 50px -18px rgba(0,0,0,.7), 0 4px 14px -6px rgba(0,0,0,.5);
+    --shadow-card:0 10px 30px -16px rgba(0,0,0,.65);
+    --ease:cubic-bezier(.22,.61,.36,1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    background:
+      radial-gradient(1200px 600px at 50% -10%, rgba(91,140,255,.10) 0%, transparent 55%),
+      radial-gradient(900px 500px at 110% 10%, rgba(122,162,255,.06) 0%, transparent 50%),
+      var(--bg);
+    color:var(--txt);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.45;
+    min-height:100%;
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  ::selection{background:var(--accent-glow);color:#fff}
+
+  /* ===== App shell ===== */
+  .app{max-width:1040px;margin:0 auto;padding:0 18px}
+
+  /* ===== Header ===== */
+  header.topbar{
+    position:sticky;top:0;z-index:50;
+    backdrop-filter:blur(22px) saturate(170%);
+    -webkit-backdrop-filter:blur(22px) saturate(170%);
+    background:linear-gradient(180deg, rgba(8,9,12,.86) 0%, rgba(8,9,12,.62) 100%);
+    border-bottom:1px solid var(--line);
+    padding:calc(env(safe-area-inset-top) + 12px) 0 12px;
+  }
+  .topbar-inner{
+    max-width:1040px;margin:0 auto;padding:0 18px;
+    display:flex;align-items:center;gap:14px;
+  }
+  .brand{display:flex;align-items:center;gap:11px;min-width:0;flex:1}
+  .brand-mark{
+    width:34px;height:34px;border-radius:10px;flex-shrink:0;
+    background:linear-gradient(145deg,var(--accent) 0%,#3a63d6 100%);
+    box-shadow:0 6px 18px -6px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,.25);
+    display:grid;place-items:center;
+  }
+  .brand-mark svg{width:18px;height:18px}
+  .brand-txt{min-width:0}
+  .brand-title{font-size:15px;font-weight:700;letter-spacing:-.2px;line-height:1.1}
+  .brand-sub{font-size:11px;color:var(--txt-3);font-weight:500;letter-spacing:.1px}
+  .btn-refresh{
+    display:inline-flex;align-items:center;gap:7px;flex-shrink:0;
+    height:38px;padding:0 15px;border-radius:11px;cursor:pointer;
+    font-family:inherit;font-size:13px;font-weight:600;color:var(--txt);
+    background:var(--surface-2);border:1px solid var(--line-2);
+    transition:transform .15s var(--ease), background .2s, border-color .2s;
+  }
+  .btn-refresh:hover{background:var(--surface-hi);border-color:rgba(255,255,255,.2)}
+  .btn-refresh:active{transform:scale(.96)}
+  .btn-refresh svg{width:15px;height:15px;transition:transform .5s var(--ease)}
+  .btn-refresh.spin svg{transform:rotate(360deg)}
+  .btn-refresh .lbl{white-space:nowrap}
+
+  /* ===== Breadcrumbs ===== */
+  .crumbs{
+    display:flex;align-items:center;gap:7px;flex-wrap:wrap;
+    padding:18px 0 4px;font-size:13px;font-weight:500;color:var(--txt-3);
+  }
+  .crumbs .c{display:inline-flex;align-items:center;gap:7px}
+  .crumbs a{color:var(--txt-2);cursor:pointer;transition:color .15s}
+  .crumbs a:hover{color:var(--accent-2)}
+  .crumbs .sep{opacity:.5}
+  .crumbs .cur{color:var(--txt)}
+
+  /* ===== Page intro ===== */
+  .intro{padding:6px 0 22px}
+  .intro h1{font-size:26px;font-weight:800;letter-spacing:-.6px}
+  .intro p{color:var(--txt-2);font-size:14px;margin-top:5px;max-width:520px}
+
+  /* ===== App grid ===== */
+  .grid-apps{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+    gap:16px;padding-bottom:48px;
+  }
+  .app-card{
+    position:relative;cursor:pointer;overflow:hidden;
+    background:linear-gradient(170deg,var(--surface) 0%,var(--bg-2) 100%);
+    border:1px solid var(--line);border-radius:var(--r-lg);
+    padding:22px 20px 18px;
+    box-shadow:var(--shadow-card);
+    transition:transform .28s var(--ease), border-color .28s, box-shadow .28s;
+    animation:rise .5s var(--ease) both;
+  }
+  .app-card::before{
+    content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+    background:radial-gradient(120px 90px at 80% 0%, rgba(91,140,255,.14), transparent 70%);
+    opacity:0;transition:opacity .28s;
+  }
+  .app-card:hover{transform:translateY(-4px);border-color:var(--line-2);box-shadow:var(--shadow)}
+  .app-card:hover::before{opacity:1}
+  .app-card:active{transform:translateY(-1px) scale(.995)}
+  .app-icon{
+    width:62px;height:62px;border-radius:18px;
+    display:grid;place-items:center;font-size:34px;line-height:1;
+    background:linear-gradient(160deg,var(--surface-hi),var(--surface));
+    border:1px solid var(--line-2);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.06), 0 8px 20px -12px rgba(0,0,0,.6);
+    margin-bottom:16px;
+  }
+  .app-name{font-size:18px;font-weight:700;letter-spacing:-.3px}
+  .app-meta{
+    margin-top:6px;display:flex;align-items:center;gap:8px;
+    font-size:13px;color:var(--txt-3);font-weight:500;
+  }
+  .app-meta .dot{width:4px;height:4px;border-radius:50%;background:var(--txt-3);opacity:.6}
+  .app-arrow{
+    position:absolute;top:22px;right:20px;color:var(--txt-3);
+    transition:transform .28s var(--ease), color .28s;
+  }
+  .app-card:hover .app-arrow{transform:translateX(3px);color:var(--accent-2)}
+  .app-arrow svg{width:18px;height:18px;display:block}
+
+  /* ===== Screen list ===== */
+  .screen-list{display:flex;flex-direction:column;gap:11px;padding-bottom:48px}
+  .screen-row{
+    position:relative;cursor:pointer;display:flex;align-items:center;gap:16px;
+    background:linear-gradient(170deg,var(--surface) 0%,var(--bg-2) 100%);
+    border:1px solid var(--line);border-radius:var(--r-md);
+    padding:16px 18px;box-shadow:var(--shadow-card);
+    transition:transform .22s var(--ease), border-color .22s, background .22s;
+    animation:rise .45s var(--ease) both;
+  }
+  .screen-row:hover{transform:translateY(-2px);border-color:var(--line-2);background:linear-gradient(170deg,var(--surface-2),var(--bg-2))}
+  .screen-row:active{transform:scale(.995)}
+  .screen-thumb{
+    width:46px;height:46px;border-radius:12px;flex-shrink:0;
+    background:linear-gradient(160deg,var(--surface-hi),var(--surface));
+    border:1px solid var(--line-2);display:grid;place-items:center;color:var(--accent-2);
+  }
+  .screen-thumb svg{width:21px;height:21px}
+  .screen-info{flex:1;min-width:0}
+  .screen-title{font-size:15px;font-weight:600;letter-spacing:-.2px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .screen-sub{margin-top:3px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .badge{
+    display:inline-flex;align-items:center;gap:6px;
+    font-size:11px;font-weight:600;letter-spacing:.1px;
+    padding:3px 9px;border-radius:999px;
+    background:var(--surface-hi);color:var(--txt-2);border:1px solid var(--line-2);
+  }
+  .badge::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--txt-3)}
+  .badge.ok{color:var(--ok);background:rgba(52,211,154,.10);border-color:rgba(52,211,154,.25)}
+  .badge.ok::before{background:var(--ok)}
+  .badge.warn{color:var(--warn);background:rgba(245,185,69,.10);border-color:rgba(245,185,69,.25)}
+  .badge.warn::before{background:var(--warn)}
+  .badge.accent{color:var(--accent-2);background:rgba(91,140,255,.10);border-color:rgba(91,140,255,.25)}
+  .badge.accent::before{background:var(--accent-2)}
+  .screen-date{font-size:12px;color:var(--txt-3);font-weight:500}
+  .screen-row .app-arrow{position:static;margin-left:auto}
+
+  /* ===== Compare view ===== */
+  .compare-head{padding:2px 0 22px}
+  .compare-title{font-size:22px;font-weight:800;letter-spacing:-.5px}
+  .compare-sub{margin-top:6px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .compare-grid{
+    display:grid;gap:26px;padding-bottom:64px;
+    grid-template-columns:1fr 1fr;align-items:start;
+  }
+  .compare-grid.single{grid-template-columns:minmax(0,420px);just-content:center;justify-items:center}
+  .compare-col{display:flex;flex-direction:column;align-items:center;gap:14px;min-width:0;width:100%;
+    animation:rise .5s var(--ease) both}
+  .col-label{
+    align-self:stretch;display:flex;align-items:center;gap:8px;
+    font-size:12px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--txt-3);
+    padding-left:2px;
+  }
+  .col-label .ic{width:15px;height:15px;color:var(--accent-2)}
+
+  /* sketch image card */
+  .sketch-wrap{
+    width:100%;border-radius:var(--r-md);overflow:hidden;
+    background:var(--surface);border:1px solid var(--line);
+    box-shadow:var(--shadow-card);
+  }
+  .sketch-wrap img{display:block;width:100%;height:auto}
+  .sketch-empty{
+    width:100%;min-height:380px;border-radius:var(--r-md);
+    border:1.5px dashed var(--line-2);display:grid;place-items:center;
+    color:var(--txt-3);font-size:13px;text-align:center;padding:30px;background:var(--bg-2);
+  }
+
+  /* phone frame */
+  .phone{
+    position:relative;width:300px;max-width:100%;
+    background:linear-gradient(160deg,#22252e,#0c0d11);
+    padding:11px;border-radius:46px;
+    box-shadow:
+      0 40px 80px -30px rgba(0,0,0,.85),
+      0 0 0 1px rgba(255,255,255,.06),
+      inset 0 1px 1px rgba(255,255,255,.18),
+      inset 0 -2px 4px rgba(0,0,0,.5);
+  }
+  .phone::after{ /* side buttons hint */
+    content:"";position:absolute;left:-2px;top:120px;width:3px;height:54px;border-radius:3px;
+    background:linear-gradient(180deg,#2a2d36,#15171c);
+  }
+  .phone-screen{
+    position:relative;width:100%;border-radius:36px;overflow:hidden;
+    background:#000;aspect-ratio:300/650;
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.6);
+  }
+  .phone-island{
+    position:absolute;top:10px;left:50%;transform:translateX(-50%);
+    width:88px;height:26px;border-radius:16px;background:#000;z-index:3;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.04);
+    display:flex;align-items:center;justify-content:center;gap:14px;
+  }
+  .phone-island::before{content:"";width:7px;height:7px;border-radius:50%;
+    background:radial-gradient(circle at 35% 35%,#2b3550,#070809)}
+  .phone-screen iframe{
+    position:absolute;inset:0;width:100%;height:100%;border:0;display:block;background:#0b0c10;
+  }
+  .phone-loader{
+    position:absolute;inset:0;display:grid;place-items:center;background:#0b0c10;z-index:2;
+    transition:opacity .4s;
+  }
+  .phone-loader.hide{opacity:0;pointer-events:none}
+
+  .open-link{
+    display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;
+    color:var(--txt-2);cursor:pointer;transition:color .15s;
+  }
+  .open-link:hover{color:var(--accent-2)}
+  .open-link svg{width:13px;height:13px}
+
+  /* ===== Spinner / skeleton ===== */
+  .spinner{width:22px;height:22px;border-radius:50%;
+    border:2.5px solid rgba(255,255,255,.12);border-top-color:var(--accent);
+    animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .skel-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;padding-bottom:48px}
+  .skel{
+    height:142px;border-radius:var(--r-lg);
+    background:linear-gradient(100deg,var(--surface) 30%,var(--surface-2) 50%,var(--surface) 70%);
+    background-size:220% 100%;animation:shimmer 1.4s infinite linear;
+    border:1px solid var(--line);
+  }
+  @keyframes shimmer{to{background-position:-220% 0}}
+
+  /* ===== Empty / error states ===== */
+  .state{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:64px 24px;gap:14px;min-height:46vh;
+  }
+  .state-ic{
+    width:74px;height:74px;border-radius:22px;display:grid;place-items:center;
+    background:linear-gradient(160deg,var(--surface-hi),var(--surface));
+    border:1px solid var(--line-2);box-shadow:var(--shadow-card);color:var(--txt-3);
+  }
+  .state-ic.err{color:var(--warn)}
+  .state-ic svg{width:32px;height:32px}
+  .state h2{font-size:18px;font-weight:700;letter-spacing:-.3px}
+  .state p{color:var(--txt-2);font-size:14px;max-width:300px}
+  .state .btn-refresh{margin-top:6px}
+
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+  /* ===== Responsive ===== */
+  @media (max-width:720px){
+    .compare-grid{grid-template-columns:1fr;gap:22px}
+    .compare-grid.single{grid-template-columns:1fr}
+    .compare-col{align-items:stretch}
+    .phone{align-self:center}
+    .col-label{justify-content:flex-start}
+  }
+  @media (max-width:480px){
+    .app{padding:0 14px}
+    .topbar-inner{padding:0 14px}
+    .grid-apps,.skel-grid{grid-template-columns:1fr;gap:13px}
+    .intro h1{font-size:22px}
+    .btn-refresh .lbl{display:none}
+    .btn-refresh{padding:0 11px}
+    .brand-sub{display:none}
+    .compare-title{font-size:19px}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/>
+          <rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>
+        </svg>
+      </div>
+      <div class="brand-txt">
+        <div class="brand-title">Галерея макетов</div>
+        <div class="brand-sub">Витрина дизайна приложений</div>
+      </div>
+    </div>
+    <button class="btn-refresh" id="refreshBtn" aria-label="Обновить">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/>
+      </svg>
+      <span class="lbl">Обновить</span>
+    </button>
+  </div>
+</header>
+
+<main class="app" id="app"></main>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- state ----------
+  var STATE = { data:null, route:{view:"home"}, loading:true, error:false };
+  var appEl = document.getElementById('app');
+  var refreshBtn = document.getElementById('refreshBtn');
+
+  // cache-busting helper for every URL we touch
+  function bust(url){
+    if(!url) return url;
+    var sep = url.indexOf('?') === -1 ? '?' : '&';
+    return url + sep + 't=' + Date.now();
+  }
+
+  // ---------- icons ----------
+  var I = {
+    chevron:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>',
+    back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>',
+    screen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M12 18h.01"/></svg>',
+    sketch:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>',
+    mock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M9 6h6"/></svg>',
+    ext:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14L21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>',
+    empty:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 9h18"/><path d="M9 14h6"/></svg>',
+    error:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>'
+  };
+
+  // ---------- status badge mapping ----------
+  function badgeClass(status){
+    var s = (status||'').toLowerCase();
+    if(s.indexOf('готов')>-1 || s.indexOf('утвержд')>-1 || s.indexOf('принят')>-1) return 'ok';
+    if(s.indexOf('согласован')>-1 || s.indexOf('ревью')>-1 || s.indexOf('провер')>-1) return 'accent';
+    if(s.indexOf('черновик')>-1 || s.indexOf('работ')>-1 || s.indexOf('правк')>-1) return 'warn';
+    return '';
+  }
+
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+  function fmtDate(d){
+    if(!d) return '';
+    var m=['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
+    var p=String(d).split('-');
+    if(p.length===3){ var n=parseInt(p[1],10); if(n>=1&&n<=12) return parseInt(p[2],10)+' '+m[n-1]+' '+p[0]; }
+    return d;
+  }
+
+  function screenCountWord(n){
+    var n10=n%10, n100=n%100;
+    if(n10===1 && n100!==11) return n+' экран';
+    if(n10>=2 && n10<=4 && (n100<10||n100>=20)) return n+' экрана';
+    return n+' экранов';
+  }
+
+  // ---------- data loading ----------
+  function load(){
+    STATE.loading=true; STATE.error=false; render();
+    fetch(bust('manifest.json'), {cache:'no-store'})
+      .then(function(r){ if(!r.ok) throw new Error('http '+r.status); return r.json(); })
+      .then(function(j){
+        STATE.data = (j && Array.isArray(j.apps)) ? j : {apps:[]};
+        STATE.loading=false; STATE.error=false; render();
+      })
+      .catch(function(){
+        STATE.loading=false; STATE.error=true; render();
+      });
+  }
+
+  function findApp(slug){
+    if(!STATE.data) return null;
+    for(var i=0;i<STATE.data.apps.length;i++) if(STATE.data.apps[i].slug===slug) return STATE.data.apps[i];
+    return null;
+  }
+  function findScreen(app,id){
+    var sc=app.screens||[];
+    for(var i=0;i<sc.length;i++) if(sc[i].id===id) return sc[i];
+    return null;
+  }
+
+  // ---------- navigation ----------
+  function go(route){ STATE.route=route; window.scrollTo({top:0,behavior:'smooth'}); render(); }
+
+  // ---------- render: header crumbs ----------
+  function crumbsHTML(){
+    var r=STATE.route, parts=[];
+    parts.push(r.view==='home'
+      ? '<span class="c cur">Главная</span>'
+      : '<span class="c"><a data-nav="home">Главная</a></span>');
+    if(r.view==='app' || r.view==='compare'){
+      var app=findApp(r.slug);
+      var nm = app?app.name:r.slug;
+      parts.push('<span class="sep">'+I.chevron+'</span>');
+      parts.push(r.view==='app'
+        ? '<span class="c cur">'+esc(nm)+'</span>'
+        : '<span class="c"><a data-nav="app" data-slug="'+esc(r.slug)+'">'+esc(nm)+'</a></span>');
+    }
+    if(r.view==='compare'){
+      var app2=findApp(r.slug); var sc=app2?findScreen(app2,r.id):null;
+      parts.push('<span class="sep">'+I.chevron+'</span>');
+      parts.push('<span class="c cur">'+esc(sc?sc.title:r.id)+'</span>');
+    }
+    return '<nav class="crumbs">'+parts.join('')+'</nav>';
+  }
+
+  // ---------- render: views ----------
+  function renderHome(){
+    var apps=STATE.data.apps;
+    if(!apps.length){
+      return crumbsHTML()+stateHTML('empty','Пока нет макетов','Добавьте приложения в manifest.json и нажмите «Обновить».');
+    }
+    var cards=apps.map(function(a,i){
+      var cnt=(a.screens||[]).length;
+      return '<div class="app-card" data-nav="app" data-slug="'+esc(a.slug)+'" style="animation-delay:'+(i*55)+'ms">'
+        +'<div class="app-arrow">'+I.chevron+'</div>'
+        +'<div class="app-icon">'+esc(a.icon||'📱')+'</div>'
+        +'<div class="app-name">'+esc(a.name||a.slug)+'</div>'
+        +'<div class="app-meta">'+esc(screenCountWord(cnt))+'</div>'
+        +'</div>';
+    }).join('');
+    return crumbsHTML()
+      +'<section class="intro"><h1>Приложения</h1><p>Выберите приложение, чтобы посмотреть макеты его экранов рядом с исходными эскизами.</p></section>'
+      +'<section class="grid-apps">'+cards+'</section>';
+  }
+
+  function renderApp(){
+    var app=findApp(STATE.route.slug);
+    if(!app) return crumbsHTML()+stateHTML('empty','Приложение не найдено','Вернитесь на главную и выберите другое.');
+    var screens=app.screens||[];
+    var body;
+    if(!screens.length){
+      body=stateHTML('empty','Нет экранов','У этого приложения пока нет макетов.');
+    } else {
+      var rows=screens.map(function(s,i){
+        var bc=badgeClass(s.status);
+        return '<div class="screen-row" data-nav="compare" data-slug="'+esc(app.slug)+'" data-id="'+esc(s.id)+'" style="animation-delay:'+(i*50)+'ms">'
+          +'<div class="screen-thumb">'+I.screen+'</div>'
+          +'<div class="screen-info">'
+            +'<div class="screen-title">'+esc(s.title||s.id)+'</div>'
+            +'<div class="screen-sub">'
+              +(s.status?'<span class="badge '+bc+'">'+esc(s.status)+'</span>':'')
+              +(s.updated?'<span class="screen-date">'+esc(fmtDate(s.updated))+'</span>':'')
+            +'</div>'
+          +'</div>'
+          +'<div class="app-arrow">'+I.chevron+'</div>'
+          +'</div>';
+      }).join('');
+      body='<div class="screen-list">'+rows+'</div>';
+    }
+    return crumbsHTML()
+      +'<section class="intro"><h1>'+esc(app.icon||'')+' '+esc(app.name||app.slug)+'</h1>'
+        +'<p>'+esc(screenCountWord(screens.length))+' на просмотр. Нажмите на экран для сравнения с эскизом.</p></section>'
+      +body;
+  }
+
+  function renderCompare(){
+    var app=findApp(STATE.route.slug);
+    var sc=app?findScreen(app,STATE.route.id):null;
+    if(!sc) return crumbsHTML()+stateHTML('empty','Экран не найден','Вернитесь назад и выберите другой.');
+
+    var bc=badgeClass(sc.status);
+    var head=crumbsHTML()
+      +'<section class="compare-head">'
+        +'<div class="compare-title">'+esc(sc.title||sc.id)+'</div>'
+        +'<div class="compare-sub">'
+          +(sc.status?'<span class="badge '+bc+'">'+esc(sc.status)+'</span>':'')
+          +(sc.updated?'<span class="screen-date">Обновлён '+esc(fmtDate(sc.updated))+'</span>':'')
+        +'</div>'
+      +'</section>';
+
+    var mockSrc = bust(sc.file);
+    var phone =
+      '<div class="phone">'
+        +'<div class="phone-screen">'
+          +'<div class="phone-island"></div>'
+          +'<div class="phone-loader" id="mockLoader"><div class="spinner"></div></div>'
+          +'<iframe id="mockFrame" src="'+esc(mockSrc)+'" title="Макет" loading="eager"></iframe>'
+        +'</div>'
+      +'</div>';
+
+    var mockCol=
+      '<div class="compare-col" style="animation-delay:60ms">'
+        +'<div class="col-label"><span class="ic">'+I.mock+'</span>Макет</div>'
+        +phone
+        +'<a class="open-link" data-open="'+esc(sc.file)+'">'+I.ext+' Открыть в новой вкладке</a>'
+      +'</div>';
+
+    var grid;
+    if(sc.sketch){
+      var sketchCol=
+        '<div class="compare-col">'
+          +'<div class="col-label"><span class="ic">'+I.sketch+'</span>Эскиз</div>'
+          +'<div class="sketch-wrap"><img src="'+esc(bust(sc.sketch))+'" alt="Эскиз" '
+            +'onerror="this.parentNode.outerHTML=\'<div class=&quot;sketch-empty&quot;>Эскиз не загрузился</div>\'"></div>'
+        +'</div>';
+      grid='<section class="compare-grid">'+sketchCol+mockCol+'</section>';
+    } else {
+      grid='<section class="compare-grid single">'+mockCol+'</section>';
+    }
+    return head+grid;
+  }
+
+  function stateHTML(type,title,text){
+    var ic = type==='error'?I.error:I.empty;
+    var cls = type==='error'?'err':'';
+    var btn = type==='error'
+      ? '<button class="btn-refresh" data-action="refresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg><span class="lbl">Обновить</span></button>'
+      : '';
+    return '<div class="state"><div class="state-ic '+cls+'">'+ic+'</div>'
+      +'<h2>'+esc(title)+'</h2><p>'+esc(text)+'</p>'+btn+'</div>';
+  }
+
+  function render(){
+    if(STATE.loading){
+      appEl.innerHTML='<nav class="crumbs"><span class="c cur">Главная</span></nav>'
+        +'<section class="intro"><h1>Приложения</h1><p>Загрузка макетов…</p></section>'
+        +'<div class="skel-grid"><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>';
+      return;
+    }
+    if(STATE.error){
+      appEl.innerHTML=stateHTML('error','Не удалось загрузить','Проверьте manifest.json и нажмите «Обновить».');
+      return;
+    }
+    var r=STATE.route, html;
+    if(r.view==='app') html=renderApp();
+    else if(r.view==='compare') html=renderCompare();
+    else html=renderHome();
+    appEl.innerHTML=html;
+
+    // wire iframe loader
+    var frame=document.getElementById('mockFrame'), loader=document.getElementById('mockLoader');
+    if(frame && loader){
+      frame.addEventListener('load',function(){ loader.classList.add('hide'); });
+      // safety timeout in case load already fired
+      setTimeout(function(){ loader.classList.add('hide'); }, 4000);
+    }
+  }
+
+  // ---------- event delegation ----------
+  appEl.addEventListener('click', function(e){
+    var nav=e.target.closest('[data-nav]');
+    if(nav){
+      var v=nav.getAttribute('data-nav');
+      if(v==='home') go({view:'home'});
+      else if(v==='app') go({view:'app', slug:nav.getAttribute('data-slug')});
+      else if(v==='compare') go({view:'compare', slug:nav.getAttribute('data-slug'), id:nav.getAttribute('data-id')});
+      return;
+    }
+    var open=e.target.closest('[data-open]');
+    if(open){ window.open(bust(open.getAttribute('data-open')), '_blank', 'noopener'); return; }
+    var act=e.target.closest('[data-action="refresh"]');
+    if(act){ doRefresh(); }
+  });
+
+  function doRefresh(){
+    refreshBtn.classList.add('spin');
+    setTimeout(function(){ refreshBtn.classList.remove('spin'); }, 600);
+    load();
+  }
+  refreshBtn.addEventListener('click', doRefresh);
+
+  // ---------- boot ----------
+  load();
+})();
+</script>
+</body>
+</html>
