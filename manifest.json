@@ -10,7 +10,14 @@
           "title": "Главный экран — редизайн",
           "file": "garage/home.html",
           "status": "на согласовании",
-          "updated": "2026-06-22"
+          "updated": "2026-06-24"
+        },
+        {
+          "id": "to",
+          "title": "Запись о ТО",
+          "file": "garage/to.html",
+          "status": "на согласовании",
+          "updated": "2026-06-24"
         }
       ]
     }
