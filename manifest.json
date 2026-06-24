@@ -20,6 +20,20 @@
           "updated": "2026-06-24"
         }
       ]
+    },
+    {
+      "slug": "letopis",
+      "name": "Летопись",
+      "icon": "📖",
+      "screens": [
+        {
+          "id": "test-screen",
+          "title": "Тест автопубликации",
+          "file": "letopis/test-screen.html",
+          "status": "тест",
+          "updated": "2026-06-24"
+        }
+      ]
     }
   ]
 }
