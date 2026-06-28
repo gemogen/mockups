@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Гараж — финал A3 + B2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#060A0F; --card:#080F14; --cardLine:#1A2535; --tx:#F2F5F9;
+    --mut:#A6B0C3; --mut2:#6B7382; --green:#6AD020; --orange:#F59D2C;
+    --blue:#006EC2; --acc:#5865F2; --accLight:#8E97FF; --surf2:#10171F;
+    --insetLine:#1A2330; --danger:#E5604D; --tx2:#C9CDD4;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:#03070B;font-family:'Inter',-apple-system,sans-serif;color:var(--tx);
+    padding:40px 24px 80px;-webkit-font-smoothing:antialiased;}
+  .page-title{font-size:13px;font-weight:700;color:var(--mut2);letter-spacing:.18em;text-transform:uppercase;margin:0 0 30px;}
+  .grid{display:flex;flex-wrap:wrap;gap:40px 46px;align-items:flex-start;}
+  .col{display:flex;flex-direction:column;gap:12px;}
+  .vlabel{font-size:12px;font-weight:800;color:var(--accLight);letter-spacing:.06em;text-transform:uppercase;}
+  .stage{width:412px;background:radial-gradient(120% 60% at 50% -10%, rgba(88,101,242,.10), transparent 60%),var(--bg);
+    border-radius:30px;padding:34px 21px;border:1px solid #0d141c;}
+
+  .dlg{background:var(--card);border:1px solid var(--cardLine);border-radius:24px;padding:22px 22px 24px;}
+  .dhead{display:flex;align-items:flex-start;gap:10px;margin-bottom:20px;}
+  .dicon{width:38px;height:38px;border-radius:11px;background:rgba(88,101,242,.14);
+    display:flex;align-items:center;justify-content:center;color:var(--accLight);flex-shrink:0;}
+  .dicon svg{width:20px;height:20px;}
+  .dttl{flex:1;min-width:0;}
+  .dttl h3{font-size:17px;font-weight:800;color:var(--tx);letter-spacing:-.2px;line-height:1.2;}
+  .dttl p{font-size:12px;color:var(--mut);margin-top:2px;}
+  .dclose{color:var(--mut);width:22px;height:22px;flex-shrink:0;cursor:pointer;}
+  .dclose svg{width:22px;height:22px;}
+
+  .flabel{font-size:13px;font-weight:700;color:var(--mut);margin-bottom:6px;}
+  .flabel .opt{color:var(--mut2);font-weight:500;}
+  .field{background:var(--card);border:1px solid var(--cardLine);border-radius:14px;padding:12px 14px;display:flex;align-items:center;}
+  .field .val{font-size:17px;font-weight:700;color:var(--tx);flex:1;}
+  .field .val.ph{color:var(--mut2);font-weight:500;}
+  .field .unit{font-size:14px;color:var(--mut);}
+  .field .lead{color:var(--mut2);margin-right:10px;display:flex;}
+  .field .lead svg{width:17px;height:17px;}
+  .field .chev{width:16px;height:16px;color:var(--mut2);}
+  .row2{display:flex;gap:12px;}.row2>div{flex:1;}
+
+  /* read-only справка о пробеге */
+  .readonly{background:var(--surf2);border:1px solid var(--insetLine);border-radius:12px;
+    padding:11px 14px;display:flex;align-items:center;gap:10px;}
+  .readonly svg{width:16px;height:16px;color:var(--mut2);flex-shrink:0;}
+  .readonly .rk{font-size:13px;color:var(--mut);flex:1;}
+  .readonly .rv{font-size:14px;font-weight:700;color:var(--tx2);}
+
+  .btn{height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:700;cursor:pointer;}
+  .btn svg{width:18px;height:18px;}
+  .btn-acc{background:var(--acc);color:#fff;}
+  .btn-icon-danger{width:50px;flex:0 0 50px;background:rgba(229,96,77,.10);color:var(--danger);}
+  .btnrow{display:flex;gap:12px;}.btnrow .grow{flex:1;}
+
+  /* B2 */
+  .progresswrap{display:flex;align-items:center;gap:14px;}
+  .ring{flex-shrink:0;}
+  .bigpct{display:flex;align-items:baseline;gap:5px;}
+  .bigpct .n{font-size:30px;font-weight:800;color:var(--tx);letter-spacing:-1px;line-height:1;}
+  .bigpct .mm{font-size:13px;color:var(--mut);font-weight:600;}
+  .bigpct .pc{font-size:14px;color:var(--green);font-weight:800;}
+  .ringsub{font-size:12px;color:var(--mut);margin-top:4px;}
+  .chartbox.bare{padding:6px 0 0;}
+  svg.chart{display:block;width:100%;height:auto;overflow:visible;}
+  .legend{display:flex;gap:16px;margin-top:8px;padding-left:2px;}
+  .legend .li{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--mut);}
+  .legend .dot{width:8px;height:8px;border-radius:50%;}
+  .legend .dash{width:13px;height:0;border-top:2px dashed currentColor;}
+  .divider{height:1px;background:#0f1620;margin:16px 0;}
+  .statrow{display:flex;flex-direction:column;}
+  .statrow .line{display:flex;align-items:center;justify-content:space-between;padding:11px 0;}
+  .statrow .line+.line{border-top:1px solid var(--insetLine);}
+  .statrow .ico{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--mut);}
+  .statrow .ico svg{width:15px;height:15px;color:var(--mut2);}
+  .statrow .rv{font-size:14px;font-weight:700;color:var(--tx);}
+  .statrow .rv.green{color:var(--green);}.statrow .rv.orange{color:var(--orange);}
+</style>
+</head>
+<body>
+<div class="page-title">Гараж · финал — A3 (замер) + B2 (график износа)</div>
+<div class="grid">
+
+  <!-- A3 финал: пробег справочно, не редактируется -->
+  <div class="col">
+    <div class="vlabel">A3 · Редактирование замера</div>
+    <div class="stage">
+      <div class="dlg">
+        <div class="dhead">
+          <div class="dicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.3 15.3 8.7 2.7a1 1 0 0 0-1.4 0L2.7 7.3a1 1 0 0 0 0 1.4l12.6 12.6a1 1 0 0 0 1.4 0l4.6-4.6a1 1 0 0 0 0-1.4Z"/><path d="m14.5 12.5-2 2"/><path d="m11.5 9.5-2 2"/><path d="m8.5 6.5-2 2"/><path d="m17.5 15.5-2 2"/></svg></div>
+          <div class="dttl"><h3>Замер протектора</h3><p>Michelin X-Ice North 4 · зима</p></div>
+          <div class="dclose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+        </div>
+
+        <div class="flabel">Дата замера</div>
+        <div class="field"><span class="lead"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span><span class="val">14 апреля 2026</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="#6B7382" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></div>
+        <div style="height:14px"></div>
+
+        <div class="row2">
+          <div><div class="flabel">Передняя, мм</div><div class="field"><span class="val">6.4</span><span class="unit">мм</span></div></div>
+          <div><div class="flabel">Задняя, мм</div><div class="field"><span class="val">6.8</span><span class="unit">мм</span></div></div>
+        </div>
+        <div style="height:14px"></div>
+
+        <!-- пробег — справочно, не редактируется -->
+        <div class="readonly">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          <span class="rk">Пробег авто на эту дату</span>
+          <span class="rv">≈ 48 200 км</span>
+        </div>
+        <div style="height:20px"></div>
+
+        <div class="btnrow">
+          <div class="btn btn-icon-danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div>
+          <div class="btn btn-acc grow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Сохранить</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- B2 финал: кольцо-герой -->
+  <div class="col">
+    <div class="vlabel">B2 · График износа по оси</div>
+    <div class="stage">
+      <div class="dlg">
+        <div class="dhead">
+          <div class="dicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg></div>
+          <div class="dttl"><h3>Передняя ось</h3><p>Michelin X-Ice North 4 · зима</p></div>
+          <div class="dclose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+        </div>
+
+        <div class="progresswrap">
+          <svg class="ring" width="58" height="58" viewBox="0 0 58 58">
+            <circle cx="29" cy="29" r="24" fill="none" stroke="#10171F" stroke-width="6"/>
+            <circle id="ring2" cx="29" cy="29" r="24" fill="none" stroke="#6AD020" stroke-width="6" stroke-linecap="round" transform="rotate(-90 29 29)"/>
+          </svg>
+          <div>
+            <div class="bigpct"><span class="n">6.4</span><span class="mm">мм</span><span class="pc">80%</span></div>
+            <div class="ringsub">осталось от 8.0 мм новой шины</div>
+          </div>
+        </div>
+        <div style="height:16px"></div>
+
+        <div class="chartbox bare" id="cb2"></div>
+        <div class="legend">
+          <div class="li"><span class="dot" style="background:var(--green)"></span>Замеры</div>
+          <div class="li" style="color:var(--mut2)"><span class="dash"></span>Прогноз</div>
+          <div class="li" style="color:var(--danger)"><span class="dash"></span>min 4.0</div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="statrow">
+          <div class="line"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>До замены</span><span class="rv">8 мес · ~14 т.км</span></div>
+          <div class="line"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Ориентировочно</span><span class="rv orange">октябрь 2026</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ring: 80% of circumference
+const r=24, C=2*Math.PI*r;
+const ring=document.getElementById('ring2');
+ring.setAttribute('stroke-dasharray', C.toFixed(2));
+ring.setAttribute('stroke-dashoffset', (C*(1-0.80)).toFixed(2));
+
+function drawChart(elId, opts){
+  const el=document.getElementById(elId); if(!el) return;
+  const W=opts.w||330, H=opts.h||140;
+  const padL=30, padR=10, padT=12, padB=20;
+  const x0=padL, x1=W-padR, y0=padT, y1=H-padB;
+  const yMax=8.0, yMin=2.0;
+  const ny=v=> y0 + (yMax-v)/(yMax-yMin)*(y1-y0);
+  const real=[ [0.00,8.0],[0.14,7.6],[0.28,7.2],[0.42,6.9],[0.55,6.4] ];
+  const proj=[ [0.55,6.4],[0.72,5.6],[0.86,4.9],[1.00,4.2] ];
+  const minMm=4.0, nx=t=> x0 + t*(x1-x0);
+  const NS='http://www.w3.org/2000/svg';
+  const svg=document.createElementNS(NS,'svg');
+  svg.setAttribute('class','chart');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const line=a=>{let d='';a.forEach((p,i)=>{d+=(i?'L':'M')+nx(p[0]).toFixed(1)+' '+ny(p[1]).toFixed(1)+' ';});return d;};
+  [8,6.5,5,3.5].forEach(v=>{
+    const ln=document.createElementNS(NS,'line');
+    ln.setAttribute('x1',x0);ln.setAttribute('x2',x1);ln.setAttribute('y1',ny(v));ln.setAttribute('y2',ny(v));
+    ln.setAttribute('stroke','#1A2330');ln.setAttribute('stroke-width','0.6');svg.appendChild(ln);
+    const t=document.createElementNS(NS,'text');
+    t.setAttribute('x',x0-6);t.setAttribute('y',ny(v)+3);t.setAttribute('text-anchor','end');
+    t.setAttribute('font-size','9');t.setAttribute('fill','#A6B0C3');t.setAttribute('font-family','Inter');
+    t.textContent=v.toFixed(1);svg.appendChild(t);
+  });
+  const ml=document.createElementNS(NS,'line');
+  ml.setAttribute('x1',x0);ml.setAttribute('x2',x1);ml.setAttribute('y1',ny(minMm));ml.setAttribute('y2',ny(minMm));
+  ml.setAttribute('stroke','#E5604D');ml.setAttribute('stroke-width','1.4');ml.setAttribute('stroke-dasharray','5 4');svg.appendChild(ml);
+  const mlt=document.createElementNS(NS,'text');
+  mlt.setAttribute('x',x1);mlt.setAttribute('y',ny(minMm)-4);mlt.setAttribute('text-anchor','end');
+  mlt.setAttribute('font-size','9');mlt.setAttribute('font-weight','700');mlt.setAttribute('fill','#E5604D');mlt.setAttribute('font-family','Inter');
+  mlt.textContent='min 4.0 мм';svg.appendChild(mlt);
+  const defs=document.createElementNS(NS,'defs');
+  const lg=document.createElementNS(NS,'linearGradient');
+  lg.setAttribute('id','g2');lg.setAttribute('x1','0');lg.setAttribute('y1','0');lg.setAttribute('x2','0');lg.setAttribute('y2','1');
+  const s1=document.createElementNS(NS,'stop');s1.setAttribute('offset','0');s1.setAttribute('stop-color','#6AD020');s1.setAttribute('stop-opacity','.20');
+  const s2=document.createElementNS(NS,'stop');s2.setAttribute('offset','1');s2.setAttribute('stop-color','#6AD020');s2.setAttribute('stop-opacity','0');
+  lg.appendChild(s1);lg.appendChild(s2);defs.appendChild(lg);svg.appendChild(defs);
+  const area=document.createElementNS(NS,'path');
+  area.setAttribute('d',line(real)+`L ${nx(0.55)} ${y1} L ${nx(0)} ${y1} Z`);
+  area.setAttribute('fill','url(#g2)');svg.appendChild(area);
+  const pp=document.createElementNS(NS,'path');
+  pp.setAttribute('d',line(proj));pp.setAttribute('fill','none');pp.setAttribute('stroke','#6AD020');
+  pp.setAttribute('stroke-width','2');pp.setAttribute('stroke-dasharray','5 4');pp.setAttribute('opacity','.5');pp.setAttribute('stroke-linecap','round');svg.appendChild(pp);
+  const rp=document.createElementNS(NS,'path');
+  rp.setAttribute('d',line(real));rp.setAttribute('fill','none');rp.setAttribute('stroke','#6AD020');
+  rp.setAttribute('stroke-width','2.6');rp.setAttribute('stroke-linecap','round');rp.setAttribute('stroke-linejoin','round');svg.appendChild(rp);
+  real.forEach(p=>{
+    const c=document.createElementNS(NS,'circle');
+    c.setAttribute('cx',nx(p[0]));c.setAttribute('cy',ny(p[1]));c.setAttribute('r','3.4');
+    c.setAttribute('fill','#6AD020');c.setAttribute('stroke','#080F14');c.setAttribute('stroke-width','2');svg.appendChild(c);
+  });
+  [['апр',0],['июн',0.28],['авг',0.55],['окт',0.78],['дек',1]].forEach(l=>{
+    const t=document.createElementNS(NS,'text');
+    t.setAttribute('x',nx(l[1]));t.setAttribute('y',H-6);t.setAttribute('text-anchor','middle');
+    t.setAttribute('font-size','9.5');t.setAttribute('fill','#A6B0C3');t.setAttribute('font-family','Inter');
+    t.textContent=l[0];svg.appendChild(t);
+  });
+  el.appendChild(svg);
+}
+drawChart('cb2',{w:328,h:132});
+</script>
+</body>
+</html>

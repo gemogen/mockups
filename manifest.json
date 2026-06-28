@@ -18,6 +18,20 @@
           "file": "garage/to.html",
           "status": "на согласовании",
           "updated": "2026-06-24"
+        },
+        {
+          "id": "tread-dialogs-contact",
+          "title": "tread-dialogs-contact",
+          "file": "garage/tread-dialogs-contact.html",
+          "status": "на согласовании",
+          "updated": "2026-06-28"
+        },
+        {
+          "id": "tread-dialogs-final",
+          "title": "Диалоги: замер протектора + график износа оси",
+          "file": "garage/tread-dialogs-final.html",
+          "status": "на согласовании",
+          "updated": "2026-06-28"
         }
       ]
     },

@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Гараж — диалоги замера/износа</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#060A0F; --card:#080F14; --cardLine:#1A2535; --tx:#F2F5F9;
+    --mut:#A6B0C3; --mut2:#6B7382; --green:#6AD020; --orange:#F59D2C;
+    --blue:#006EC2; --acc:#5865F2; --accLight:#8E97FF; --surf2:#10171F;
+    --insetLine:#1A2330; --danger:#E5604D; --tx2:#C9CDD4;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    background:#03070B; font-family:'Inter',-apple-system,sans-serif;
+    color:var(--tx); padding:40px 24px 80px; -webkit-font-smoothing:antialiased;
+  }
+  .page-title{font-size:13px;font-weight:700;color:var(--mut2);letter-spacing:.18em;text-transform:uppercase;margin:0 0 6px;}
+  .page-sub{font-size:12px;color:var(--mut2);margin-bottom:34px;max-width:640px;line-height:1.5;}
+  .grid{display:flex;flex-wrap:wrap;gap:38px 30px;align-items:flex-start;}
+  .col{display:flex;flex-direction:column;gap:10px;}
+  .vlabel{font-size:11px;font-weight:700;color:var(--accLight);letter-spacing:.1em;text-transform:uppercase;}
+  .vnote{font-size:10.5px;color:var(--mut2);max-width:370px;line-height:1.45;margin-top:-4px;}
+  .section-h{width:100%;font-size:11px;font-weight:800;color:var(--mut);letter-spacing:.14em;text-transform:uppercase;
+    margin:24px 0 2px;padding-bottom:8px;border-bottom:1px solid #121a24;}
+
+  /* phone backing so dialog sits on app bg */
+  .stage{
+    width:412px; background:
+      radial-gradient(120% 60% at 50% -10%, rgba(88,101,242,.10), transparent 60%),
+      var(--bg);
+    border-radius:30px; padding:30px 21px; border:1px solid #0d141c;
+  }
+
+  /* ── dialog base (mirrors Flutter Dialog) ── */
+  .dlg{
+    background:var(--card); border:1px solid var(--cardLine);
+    border-radius:24px; padding:22px 22px 24px;
+  }
+  .dhead{display:flex;align-items:flex-start;gap:10px;margin-bottom:20px;}
+  .dicon{width:38px;height:38px;border-radius:11px;background:rgba(88,101,242,.14);
+    display:flex;align-items:center;justify-content:center;color:var(--accLight);flex-shrink:0;}
+  .dicon svg{width:20px;height:20px;}
+  .dttl{flex:1;min-width:0;}
+  .dttl h3{font-size:17px;font-weight:800;color:var(--tx);letter-spacing:-.2px;line-height:1.2;}
+  .dttl p{font-size:12px;color:var(--mut);margin-top:2px;}
+  .dclose{color:var(--mut);width:22px;height:22px;flex-shrink:0;cursor:pointer;}
+  .dclose svg{width:22px;height:22px;}
+
+  /* fields */
+  .flabel{font-size:13px;font-weight:700;color:var(--mut);margin-bottom:6px;}
+  .field{background:var(--card);border:1px solid var(--cardLine);border-radius:14px;
+    padding:12px 14px;display:flex;align-items:center;}
+  .field .val{font-size:17px;font-weight:700;color:var(--tx);flex:1;}
+  .field .val.ph{color:var(--mut2);font-weight:500;}
+  .field .unit{font-size:14px;color:var(--mut);}
+  .field .lead{color:var(--mut2);margin-right:10px;display:flex;}
+  .field .lead svg{width:17px;height:17px;}
+  .pasthint{margin-top:5px;background:var(--surf2);border-radius:10px;padding:8px 12px;
+    display:flex;align-items:center;gap:7px;font-size:12px;color:var(--mut);}
+  .pasthint svg{width:13px;height:13px;}
+  .pasthint b{color:var(--tx2);font-weight:700;}
+
+  .row2{display:flex;gap:12px;}
+  .row2 > div{flex:1;}
+
+  /* buttons */
+  .btn{height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;gap:8px;
+    font-size:15px;font-weight:700;cursor:pointer;}
+  .btn svg{width:18px;height:18px;}
+  .btn-acc{background:var(--acc);color:#fff;}
+  .btn-ghost-danger{background:transparent;border:1px solid rgba(229,96,77,.32);color:var(--danger);}
+  .btn-soft-danger{background:rgba(229,96,77,.10);color:var(--danger);}
+  .btn-icon-danger{width:50px;flex:0 0 50px;background:rgba(229,96,77,.10);color:var(--danger);}
+  .btnrow{display:flex;gap:12px;}
+  .btnrow .grow{flex:1;}
+
+  /* chips / stat strip */
+  .chips{display:flex;gap:8px;flex-wrap:wrap;}
+  .chip{background:var(--surf2);border:1px solid var(--insetLine);border-radius:11px;
+    padding:9px 12px;display:flex;flex-direction:column;gap:3px;min-width:0;}
+  .chip .k{font-size:10px;font-weight:700;color:var(--mut2);letter-spacing:.04em;text-transform:uppercase;}
+  .chip .v{font-size:14px;font-weight:800;color:var(--tx);white-space:nowrap;}
+  .chip .v.green{color:var(--green);}
+  .chip .v.orange{color:var(--orange);}
+
+  .statrow{display:flex;flex-direction:column;}
+  .statrow .line{display:flex;align-items:center;justify-content:space-between;padding:11px 0;}
+  .statrow .line + .line{border-top:1px solid var(--insetLine);}
+  .statrow .ico{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--mut);}
+  .statrow .ico svg{width:15px;height:15px;color:var(--mut2);}
+  .statrow .rv{font-size:14px;font-weight:700;color:var(--tx);}
+  .statrow .rv.green{color:var(--green);}
+  .statrow .rv.orange{color:var(--orange);}
+
+  /* chart */
+  .chartbox{position:relative;background:var(--card);border:1px solid var(--insetLine);
+    border-radius:14px;padding:14px 12px 10px;}
+  .chartbox.bare{border:none;background:transparent;padding:6px 0 0;}
+  svg.chart{display:block;width:100%;height:auto;overflow:visible;}
+  .legend{display:flex;gap:16px;margin-top:8px;padding-left:2px;}
+  .legend .li{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--mut);}
+  .legend .dot{width:8px;height:8px;border-radius:50%;}
+  .legend .dash{width:13px;height:0;border-top:2px dashed currentColor;}
+  .gtag{position:absolute;font-size:9px;font-weight:700;letter-spacing:.02em;}
+
+  .seg{display:flex;background:var(--surf2);border:1px solid var(--insetLine);border-radius:11px;padding:3px;gap:2px;}
+  .seg .s{flex:1;text-align:center;font-size:11px;font-weight:700;color:var(--mut);padding:6px 0;border-radius:8px;}
+  .seg .s.on{background:rgba(88,101,242,.16);color:var(--accLight);}
+
+  .progresswrap{display:flex;align-items:center;gap:12px;margin-bottom:2px;}
+  .ring{flex-shrink:0;}
+  .bigpct{display:flex;align-items:baseline;gap:4px;}
+  .bigpct .n{font-size:30px;font-weight:800;color:var(--tx);letter-spacing:-1px;line-height:1;}
+  .bigpct .mm{font-size:13px;color:var(--mut);font-weight:600;}
+  .bigpct .pc{font-size:13px;color:var(--green);font-weight:700;}
+
+  .divider{height:1px;background:#0f1620;margin:16px 0;}
+  .smallcap{font-size:10px;font-weight:700;color:var(--mut2);letter-spacing:.12em;text-transform:uppercase;margin-bottom:9px;}
+</style>
+</head>
+<body>
+<div class="page-title">Гараж · модальные диалоги</div>
+<div class="page-sub">Слева — «Редактирование замера». Справа — «График износа по оси». Все варианты держатся единой дизайн-системы (токены theme.dart, стиль диалога из update_tread_sheet.dart). Различаются компоновкой, плотностью и расстановкой акцентов.</div>
+
+<!-- ============ ДИАЛОГ 1: РЕДАКТИРОВАНИЕ ЗАМЕРА ============ -->
+<div class="section-h">Диалог 1 — Редактирование замера</div>
+<div class="grid">
+
+  <!-- A1: классический столбец, как базовый sheet -->
+  <div class="col">
+    <div class="vlabel">A1 · Классический столбец</div>
+    <div class="vnote">Прямое продолжение базового диалога: поля столбиком, кнопки в ряд «Удалить + Сохранить». Минимум нового.</div>
+    <div class="stage">
+      <div class="dlg">
+        <div class="dhead">
+          <div class="dicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.3 15.3 8.7 2.7a1 1 0 0 0-1.4 0L2.7 7.3a1 1 0 0 0 0 1.4l12.6 12.6a1 1 0 0 0 1.4 0l4.6-4.6a1 1 0 0 0 0-1.4Z"/><path d="m14.5 12.5-2 2"/><path d="m11.5 9.5-2 2"/><path d="m8.5 6.5-2 2"/><path d="m17.5 15.5-2 2"/></svg></div>
+          <div class="dttl"><h3>Замер от 14 апр</h3><p>Michelin X-Ice North 4 · зима</p></div>
+          <div class="dclose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+        </div>
+        <div class="row2">
+          <div><div class="flabel">Передняя, мм</div><div class="field"><span class="val">6.4</span><span class="unit">мм</span></div></div>
+          <div><div class="flabel">Задняя, мм</div><div class="field"><span class="val">6.8</span><span class="unit">мм</span></div></div>
+        </div>
+        <div style="height:12px"></div>
+        <div class="flabel">Дата замера</div>
+        <div class="field"><span class="lead"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span><span class="val">14 апреля 2026</span></div>
+        <div style="height:12px"></div>
+        <div class="flabel">Пробег авто, км</div>
+        <div class="field"><span class="val ph">не менялся</span><span class="unit">км</span></div>
+        <div style="height:20px"></div>
+        <div class="btnrow">
+          <div class="btn btn-soft-danger" style="flex:0 0 50px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div>
+          <div class="btn btn-acc grow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Сохранить</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- A2: оси на чипах с прошлым значением встроенным -->
+  <div class="col">
+    <div class="vlabel">A2 · Парные оси, прошлое рядом</div>
+    <div class="vnote">Поля осей рядом с микро-подсказкой «было». Дата и пробег компактны. Удаление — текстовой ghost снизу.</div>
+    <div class="stage">
+      <div class="dlg">
+        <div class="dhead">
+          <div class="dicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.3 15.3 8.7 2.7a1 1 0 0 0-1.4 0L2.7 7.3a1 1 0 0 0 0 1.4l12.6 12.6a1 1 0 0 0 1.4 0l4.6-4.6a1 1 0 0 0 0-1.4Z"/><path d="m14.5 12.5-2 2"/><path d="m11.5 9.5-2 2"/><path d="m8.5 6.5-2 2"/><path d="m17.5 15.5-2 2"/></svg></div>
+          <div class="dttl"><h3>Замер от 14 апр</h3><p>Michelin X-Ice · зима</p></div>
+          <div class="dclose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+        </div>
+        <div class="row2">
+          <div>
+            <div class="flabel">Передняя, мм</div>
+            <div class="field"><span class="val">6.4</span><span class="unit">мм</span></div>
+            <div class="pasthint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/></svg>было <b>7.2</b></div>
+          </div>
+          <div>
+            <div class="flabel">Задняя, мм</div>
+            <div class="field"><span class="val">6.8</span><span class="unit">мм</span></div>
+            <div class="pasthint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/></svg>было <b>7.4</b></div>
+          </div>
+        </div>
+        <div style="height:14px"></div>
+        <div class="row2">
+          <div><div class="flabel">Дата</div><div class="field"><span class="lead"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span><span class="val" style="font-size:15px">14.04.26</span></div></div>
+          <div><div class="flabel">Пробег, км</div><div class="field"><span class="val ph" style="font-size:15px">—</span><span class="unit">км</span></div></div>
+        </div>
+        <div style="height:18px"></div>
+        <div class="btn btn-acc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Сохранить</div>
+        <div style="height:10px"></div>
+        <div class="btn btn-ghost-danger" style="height:42px;font-size:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Удалить замер</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- A3: дата как заголовок-герой, поля плотнее -->
+  <div class="col">
+    <div class="vlabel">A3 · Дата-герой, плотный</div>
+    <div class="vnote">Дата вынесена в шапку крупно (это «карточка дня»). Оси и пробег ниже. Удалить — иконка слева от Сохранить.</div>
+    <div class="stage">
+      <div class="dlg">
+        <div class="dhead">
+          <div class="dicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.3 15.3 8.7 2.7a1 1 0 0 0-1.4 0L2.7 7.3a1 1 0 0 0 0 1.4l12.6 12.6a1 1 0 0 0 1.4 0l4.6-4.6a1 1 0 0 0 0-1.4Z"/><path d="m14.5 12.5-2 2"/><path d="m11.5 9.5-2 2"/><path d="m8.5 6.5-2 2"/><path d="m17.5 15.5-2 2"/></svg></div>
+          <div class="dttl"><h3>Замер протектора</h3><p>Michelin X-Ice North 4 · зима</p></div>
+          <div class="dclose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+        </div>
+        <div class="flabel">Дата замера</div>
+        <div class="field"><span class="lead"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span><span class="val">14 апреля 2026</span><svg viewBox="0 0 24 24" fill="none" stroke="#6B7382" stroke-width="2" stroke-linecap="round" style="width:16px;height:16px"><path d="m6 9 6 6 6-6"/></svg></div>
+        <div style="height:14px"></div>
+        <div class="row2">
+          <div><div class="flabel">Передняя, мм</div><div class="field"><span class="val">6.4</span><span class="unit">мм</span></div></div>
+          <div><div class="flabel">Задняя, мм</div><div class="field"><span class="val">6.8</span><span class="unit">мм</span></div></div>
+        </div>
+        <div style="height:14px"></div>
+        <div class="flabel">Пробег авто, км <span style="color:var(--mut2);font-weight:500">· необязательно</span></div>
+        <div class="field"><span class="val ph">не менялся</span><span class="unit">км</span></div>
+        <div style="height:20px"></div>
+        <div class="btnrow">
+          <div class="btn btn-icon-danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div>
+          <div class="btn btn-acc grow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Сохранить</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============ ДИАЛОГ 2: ГРАФИК ИЗНОСА ============ -->
+<div class="section-h">Диалог 2 — График износа по оси</div>
+<div class="grid">
+
+  <!-- B1: чипы под графиком (3 в ряд) -->
+  <div class="col">
+    <div class="vlabel">B1 · График + 3 чипа</div>
+    <div class="vnote">График в карточке-inset, как существующие графики проекта. Сводка тремя чипами. Самый компактный.</div>
+    <div class="stage">
+      <div class="dlg">
+        <div class="dhead">
+          <div class="dicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg></div>
+          <div class="dttl"><h3>Передняя ось</h3><p>Michelin X-Ice North 4 · зима</p></div>
+          <div class="dclose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+        </div>
+        <div class="chartbox" id="cb1"></div>
+        <div class="legend">
+          <div class="li"><span class="dot" style="background:var(--green)"></span>Замеры</div>
+          <div class="li" style="color:var(--mut2)"><span class="dash"></span>Прогноз</div>
+          <div class="li" style="color:var(--danger)"><span class="dash"></span>min 4.0</div>
+        </div>
+        <div style="height:14px"></div>
+        <div class="chips">
+          <div class="chip" style="flex:1"><span class="k">Сейчас</span><span class="v green">6.4 мм · 80%</span></div>
+          <div class="chip" style="flex:1"><span class="k">До замены</span><span class="v">8 мес · ~14 т.км</span></div>
+        </div>
+        <div style="height:8px"></div>
+        <div class="chip" style="flex-direction:row;align-items:center;gap:9px"><svg viewBox="0 0 24 24" fill="none" stroke="#6B7382" stroke-width="2" stroke-linecap="round" style="width:15px;height:15px"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span class="k" style="margin:0">Ориентировочно</span><span class="v" style="margin-left:auto">октябрь 2026</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- B2: герой-процент + статстрока -->
+  <div class="col">
+    <div class="vlabel">B2 · Процент-герой + строки</div>
+    <div class="vnote">Крупный «остаток» слева в шапке-сводке, график ниже, детали — строками со связкой иконка/значение.</div>
+    <div class="stage">
+      <div class="dlg">
+        <div class="dhead">
+          <div class="dicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg></div>
+          <div class="dttl"><h3>Передняя ось</h3><p>Michelin X-Ice North 4 · зима</p></div>
+          <div class="dclose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+        </div>
+        <div class="progresswrap">
+          <svg class="ring" width="56" height="56" viewBox="0 0 56 56">
+            <circle cx="28" cy="28" r="24" fill="none" stroke="#10171F" stroke-width="6"/>
+            <circle cx="28" cy="28" r="24" fill="none" stroke="#6AD020" stroke-width="6" stroke-linecap="round"
+              stroke-dasharray="150.8" stroke-dashoffset="30.2" transform="rotate(-90 28 28)"/>
+          </svg>
+          <div>
+            <div class="bigpct"><span class="n">6.4</span><span class="mm">мм</span><span class="pc">· 80%</span></div>
+            <div style="font-size:12px;color:var(--mut);margin-top:3px">осталось от 8.0 мм новой шины</div>
+          </div>
+        </div>
+        <div style="height:14px"></div>
+        <div class="chartbox bare" id="cb2"></div>
+        <div class="legend">
+          <div class="li"><span class="dot" style="background:var(--green)"></span>Замеры</div>
+          <div class="li" style="color:var(--mut2)"><span class="dash"></span>Прогноз</div>
+          <div class="li" style="color:var(--danger)"><span class="dash"></span>min 4.0</div>
+        </div>
+        <div class="divider"></div>
+        <div class="statrow">
+          <div class="line"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>До замены</span><span class="rv">8 мес · ~14 т.км</span></div>
+          <div class="line"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Ориентировочно</span><span class="rv orange">октябрь 2026</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- B3: сегмент-переключатель осей + график во всю ширину + строки -->
+  <div class="col">
+    <div class="vlabel">B3 · Переключатель осей</div>
+    <div class="vnote">Сегмент Перед/Зад вверху — обе оси в одном окне. График крупнее, сводка строками. Сезонный маркер на графике.</div>
+    <div class="stage">
+      <div class="dlg">
+        <div class="dhead">
+          <div class="dicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg></div>
+          <div class="dttl"><h3>Износ протектора</h3><p>Michelin X-Ice North 4 · зима</p></div>
+          <div class="dclose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+        </div>
+        <div class="seg"><div class="s on">Передняя ось</div><div class="s">Задняя ось</div></div>
+        <div style="height:14px"></div>
+        <div class="chartbox" id="cb3"></div>
+        <div class="legend">
+          <div class="li"><span class="dot" style="background:var(--green)"></span>Замеры</div>
+          <div class="li" style="color:var(--mut2)"><span class="dash"></span>Прогноз</div>
+          <div class="li" style="color:var(--danger)"><span class="dash"></span>min 4.0</div>
+          <div class="li" style="color:var(--accLight)"><span style="width:2px;height:11px;background:currentColor;display:inline-block"></span>замена</div>
+        </div>
+        <div class="divider"></div>
+        <div class="statrow">
+          <div class="line"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21.3 15.3 8.7 2.7a1 1 0 0 0-1.4 0L2.7 7.3a1 1 0 0 0 0 1.4l12.6 12.6a1 1 0 0 0 1.4 0l4.6-4.6a1 1 0 0 0 0-1.4Z"/></svg>Сейчас</span><span class="rv green">6.4 мм · 80%</span></div>
+          <div class="line"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>До замены</span><span class="rv">8 мес · ~14 т.км</span></div>
+          <div class="line"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Ориентировочно</span><span class="rv orange">октябрь 2026</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── Рисуем график износа похоже на fl_chart проекта ──
+// данные: глубина мм, падает со временем; прогноз пунктиром; min линия; (опц.) маркер замены
+function drawChart(elId, opts){
+  const el=document.getElementById(elId); if(!el) return;
+  const W=opts.w||330, H=opts.h||150;
+  const padL=30, padR=10, padT=10, padB=20;
+  const x0=padL, x1=W-padR, y0=padT, y1=H-padB;
+  const yMax=8.0, yMin=2.0; // мм диапазон
+  const ny=v=> y0 + (yMax-v)/(yMax-yMin)*(y1-y0);
+  // реальные замеры (доля по X 0..0.55), прогноз дальше
+  const real=[ [0.00,8.0],[0.14,7.6],[0.28,7.2],[0.42,6.9],[0.55,6.4] ];
+  const proj=[ [0.55,6.4],[0.72,5.6],[0.86,4.9],[1.00,4.2] ];
+  const minMm=4.0;
+  const nx=t=> x0 + t*(x1-x0);
+  const NS='http://www.w3.org/2000/svg';
+  const svg=document.createElementNS(NS,'svg');
+  svg.setAttribute('class','chart');
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  function line(a){let d='';a.forEach((p,i)=>{d+=(i?'L':'M')+nx(p[0]).toFixed(1)+' '+ny(p[1]).toFixed(1)+' ';});return d;}
+  // grid horizontals (insetLine)
+  [8,6.5,5,3.5].forEach(v=>{
+    const ln=document.createElementNS(NS,'line');
+    ln.setAttribute('x1',x0);ln.setAttribute('x2',x1);ln.setAttribute('y1',ny(v));ln.setAttribute('y2',ny(v));
+    ln.setAttribute('stroke','#1A2330');ln.setAttribute('stroke-width','0.6');svg.appendChild(ln);
+    const t=document.createElementNS(NS,'text');
+    t.setAttribute('x',x0-6);t.setAttribute('y',ny(v)+3);t.setAttribute('text-anchor','end');
+    t.setAttribute('font-size','9');t.setAttribute('fill','#A6B0C3');t.setAttribute('font-family','Inter');
+    t.textContent=v.toFixed(1);svg.appendChild(t);
+  });
+  // min line (danger dashed)
+  const ml=document.createElementNS(NS,'line');
+  ml.setAttribute('x1',x0);ml.setAttribute('x2',x1);ml.setAttribute('y1',ny(minMm));ml.setAttribute('y2',ny(minMm));
+  ml.setAttribute('stroke','#E5604D');ml.setAttribute('stroke-width','1.4');ml.setAttribute('stroke-dasharray','5 4');
+  svg.appendChild(ml);
+  const mlt=document.createElementNS(NS,'text');
+  mlt.setAttribute('x',x1);mlt.setAttribute('y',ny(minMm)-4);mlt.setAttribute('text-anchor','end');
+  mlt.setAttribute('font-size','9');mlt.setAttribute('font-weight','700');mlt.setAttribute('fill','#E5604D');mlt.setAttribute('font-family','Inter');
+  mlt.textContent='min 4.0 мм';svg.appendChild(mlt);
+  // seasonal marker (optional)
+  if(opts.season){
+    const sx=nx(0.78);
+    const sl=document.createElementNS(NS,'line');
+    sl.setAttribute('x1',sx);sl.setAttribute('x2',sx);sl.setAttribute('y1',y0);sl.setAttribute('y2',y1);
+    sl.setAttribute('stroke','#8E97FF');sl.setAttribute('stroke-width','1.2');sl.setAttribute('stroke-dasharray','3 3');sl.setAttribute('opacity','.7');
+    svg.appendChild(sl);
+    const st=document.createElementNS(NS,'text');
+    st.setAttribute('x',sx);st.setAttribute('y',y0-1);st.setAttribute('text-anchor','middle');
+    st.setAttribute('font-size','8');st.setAttribute('font-weight','700');st.setAttribute('fill','#8E97FF');st.setAttribute('font-family','Inter');
+    st.textContent='ЗАМЕНА';svg.appendChild(st);
+  }
+  // area fill under real (green@18%)
+  const area=document.createElementNS(NS,'path');
+  let ad=line(real)+`L ${nx(0.55)} ${y1} L ${nx(0)} ${y1} Z`;
+  area.setAttribute('d',ad);
+  const gid='grad_'+elId;
+  const defs=document.createElementNS(NS,'defs');
+  const lg=document.createElementNS(NS,'linearGradient');
+  lg.setAttribute('id',gid);lg.setAttribute('x1','0');lg.setAttribute('y1','0');lg.setAttribute('x2','0');lg.setAttribute('y2','1');
+  const s1=document.createElementNS(NS,'stop');s1.setAttribute('offset','0');s1.setAttribute('stop-color','#6AD020');s1.setAttribute('stop-opacity','.20');
+  const s2=document.createElementNS(NS,'stop');s2.setAttribute('offset','1');s2.setAttribute('stop-color','#6AD020');s2.setAttribute('stop-opacity','0');
+  lg.appendChild(s1);lg.appendChild(s2);defs.appendChild(lg);svg.appendChild(defs);
+  area.setAttribute('fill',`url(#${gid})`);svg.appendChild(area);
+  // projection dashed (mut2/green)
+  const pp=document.createElementNS(NS,'path');
+  pp.setAttribute('d',line(proj));pp.setAttribute('fill','none');
+  pp.setAttribute('stroke','#6AD020');pp.setAttribute('stroke-width','2');pp.setAttribute('stroke-dasharray','5 4');pp.setAttribute('opacity','.5');
+  pp.setAttribute('stroke-linecap','round');svg.appendChild(pp);
+  // real line (green solid)
+  const rp=document.createElementNS(NS,'path');
+  rp.setAttribute('d',line(real));rp.setAttribute('fill','none');
+  rp.setAttribute('stroke','#6AD020');rp.setAttribute('stroke-width','2.6');rp.setAttribute('stroke-linecap','round');rp.setAttribute('stroke-linejoin','round');
+  svg.appendChild(rp);
+  // dots on real
+  real.forEach(p=>{
+    const c=document.createElementNS(NS,'circle');
+    c.setAttribute('cx',nx(p[0]));c.setAttribute('cy',ny(p[1]));c.setAttribute('r','3.4');
+    c.setAttribute('fill','#6AD020');c.setAttribute('stroke','#080F14');c.setAttribute('stroke-width','2');
+    svg.appendChild(c);
+  });
+  // x labels
+  [['апр',0],['июн',0.28],['авг',0.55],['окт',0.78],['дек',1]].forEach(l=>{
+    const t=document.createElementNS(NS,'text');
+    t.setAttribute('x',nx(l[1]));t.setAttribute('y',H-6);t.setAttribute('text-anchor','middle');
+    t.setAttribute('font-size','9.5');t.setAttribute('fill','#A6B0C3');t.setAttribute('font-family','Inter');
+    t.textContent=l[0];svg.appendChild(t);
+  });
+  el.appendChild(svg);
+}
+drawChart('cb1',{w:316,h:140});
+drawChart('cb2',{w:328,h:130});
+drawChart('cb3',{w:316,h:158,season:true});
+</script>
+</body>
+</html>
