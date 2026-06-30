@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ориентир — Дроны МО РФ · вариант D «Терминал» · финал</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0a; --bg2:#0e0e0e; --scaffold:#000;
+    --surf:#141414; --surf2:#101010;
+    --line:rgba(255,255,255,.07); --line2:rgba(255,255,255,.12);
+    --t1:#f2f2f2; --t2:#b8b8b8; --t3:#7a7a7a; --t4:#525252;
+    --amber:#fa8000; --amberD:#d96d00; --indigo:#5b6cff;
+    --pos:#4ade80; --neg:#ff433d; --barRest:#2a2a2a; --onTeal:#1a0e00;
+    --avg:#ffb200;
+    --mono:'JetBrains Mono'; --sans:'Manrope';
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  body{background:#000;color:#fff;font-family:var(--sans);padding:40px 24px 90px;}
+  .page-title{text-align:center;font-size:26px;font-weight:800;letter-spacing:-.5px;margin-bottom:6px;}
+  .page-sub{text-align:center;color:#7a8aa0;font-size:13px;max-width:820px;margin:0 auto 30px;line-height:1.55;}
+  .row{display:flex;flex-wrap:wrap;gap:40px 30px;justify-content:center;max-width:1500px;margin:0 auto;}
+  .item{display:flex;flex-direction:column;align-items:center;}
+  .cap{margin-top:13px;font-size:12px;color:#8a96a4;letter-spacing:.3px;text-align:center;max-width:300px;line-height:1.5;}
+  .cap b{color:var(--amber);font-weight:700;}
+
+  .phone{width:300px;height:648px;border-radius:42px;padding:11px;background:#161616;
+         box-shadow:0 40px 80px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.05);flex-shrink:0;position:relative;}
+  .screen{width:100%;height:100%;border-radius:32px;overflow:hidden;position:relative;background:var(--bg);}
+  .island{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:88px;height:26px;background:#000;border-radius:16px;z-index:60;}
+  .sb{display:flex;justify-content:space-between;align-items:center;padding:13px 22px 5px;font:600 13px var(--sans);position:relative;z-index:40;color:var(--t1);}
+  .sb .r{display:flex;gap:7px;align-items:center;}
+  .content{height:calc(100% - 40px);overflow:hidden;position:relative;background:linear-gradient(180deg,var(--bg),var(--scaffold));}
+
+  .hdr-back{width:36px;height:36px;border-radius:11px;background:var(--surf);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .hdr-ic{width:36px;height:36px;border-radius:11px;background:var(--surf);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .title{font:800 20px var(--sans);letter-spacing:-.4px;color:var(--t1);line-height:1.05;}
+  .disc{font:600 9px var(--sans);color:var(--t4);letter-spacing:.2px;line-height:1.3;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .cap-lbl{font:700 8.5px var(--sans);color:var(--t3);letter-spacing:.8px;text-transform:uppercase;}
+  .num{font-family:var(--mono);}
+  .glass{background:var(--surf);border:1px solid var(--line);border-radius:14px;}
+  .skl{background:linear-gradient(90deg,rgba(255,255,255,.04) 25%,rgba(255,255,255,.09) 37%,rgba(255,255,255,.04) 63%);background-size:400% 100%;animation:sh 1.4s ease infinite;border-radius:6px;}
+  @keyframes sh{0%{background-position:100% 0}100%{background-position:-100% 0}}
+
+  .pchips{display:flex;background:var(--surf);border:1px solid var(--line);border-radius:8px;padding:3px;}
+  .pchips .c{flex:1;text-align:center;font:700 10px var(--sans);color:var(--t3);padding:6px 0;border-radius:6px;}
+  .pchips .c.on{background:rgba(250,128,0,.16);color:var(--amber);}
+  svg{display:block;}
+  .grouphdr{width:100%;text-align:center;font:800 13px var(--sans);margin:24px 0 -12px;color:#cdd9e6;letter-spacing:.3px;}
+</style>
+</head>
+<body>
+<div class="page-title">Ориентир · Дроны МО РФ — вариант D «Терминал» (финал)</div>
+<div class="page-sub">Доведён: дисклеймер в одну строку, обе средние MA7+MA30 с легендой, метрик-строка LAST/AVG/MAX/Σ, мини-чарт, моно-таблица сводок с дельтами. Все состояния в системе «Аврора».</div>
+
+<div class="row" id="row"></div>
+
+<script>
+const DATA=[
+ {d:'12.11.25',v:24},{d:'19.11.25',v:41},{d:'27.11.25',v:33},
+ {d:'06.12.25',v:58},{d:'15.12.25',v:47},{d:'24.12.25',v:72},
+ {d:'08.01.26',v:39},{d:'21.01.26',v:64},{d:'03.02.26',v:51},
+];
+const LAST=DATA[DATA.length-1];
+const TOTAL=DATA.reduce((s,p)=>s+p.v,0);
+const MAXV=Math.max(...DATA.map(p=>p.v));
+const AVG=Math.round(TOTAL/DATA.length);
+function ma(arr,w){return arr.map((_,i)=>{const s=Math.max(0,i-w+1);const sl=arr.slice(s,i+1);return sl.reduce((a,b)=>a+b.v,0)/sl.length;});}
+const MA7=ma(DATA,3), MA30=ma(DATA,5);
+function xAt(i,w,padL,padR){return padL+i*((w-padL-padR)/(DATA.length-1));}
+function yAt(v,h,padT,padB,max){return padT+(h-padT-padB)*(1-v/max);}
+function linePath(vals,w,h,padL,padR,padT,padB,max){return vals.map((v,i)=>{const x=xAt(i,w,padL,padR);const y=yAt(v,h,padT,padB,max);return (i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1);}).join(' ');}
+
+const I={
+ back:`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b8b8b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>`,
+ shield:c=>`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><polyline points="9 12 11 14 15 9.5"/></svg>`,
+ drone:c=>`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="5" r="2.2"/><circle cx="19" cy="5" r="2.2"/><circle cx="5" cy="19" r="2.2"/><circle cx="19" cy="19" r="2.2"/><rect x="9.5" y="9.5" width="5" height="5" rx="1.2"/><line x1="6.6" y1="6.6" x2="9.5" y2="9.5"/><line x1="17.4" y1="6.6" x2="14.5" y2="9.5"/><line x1="6.6" y1="17.4" x2="9.5" y2="14.5"/><line x1="17.4" y1="17.4" x2="14.5" y2="14.5"/></svg>`,
+ target:c=>`<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4" fill="${c}"/></svg>`,
+ wifioff:`<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#ff433d" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="2" x2="22" y2="22"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M2 8.8a16 16 0 0 1 4.6-2.8"/><path d="M5 12.9a10 10 0 0 1 2.6-1.8"/><path d="M22 8.8a16 16 0 0 0-7.5-3.6"/><path d="M16.7 11.2a10 10 0 0 1 2.3 1.7"/><line x1="12" y1="20" x2="12" y2="20"/></svg>`,
+ refresh:`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fa8000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.5 15a9 9 0 1 1-2.1-9.4L23 10"/></svg>`,
+ sig:`<svg width="15" height="13" viewBox="0 0 24 20" fill="#f2f2f2"><rect x="0" y="13" width="4" height="6" rx="1"/><rect x="6" y="9" width="4" height="10" rx="1"/><rect x="12" y="5" width="4" height="14" rx="1"/><rect x="18" y="1" width="4" height="18" rx="1"/></svg>`,
+ wifi:`<svg width="15" height="13" viewBox="0 0 24 18" fill="none" stroke="#f2f2f2" stroke-width="2" stroke-linecap="round"><path d="M2 6 A14 14 0 0 1 22 6"/><path d="M5.5 9.5 A9 9 0 0 1 18.5 9.5"/><path d="M9 13 A4 4 0 0 1 15 13"/><circle cx="12" cy="16" r="1.2" fill="#f2f2f2"/></svg>`,
+ bat:`<svg width="22" height="12" viewBox="0 0 26 13" fill="none"><rect x="1" y="1" width="21" height="11" rx="3" stroke="#f2f2f2" stroke-opacity=".5"/><rect x="3" y="3" width="16" height="7" rx="1.5" fill="#f2f2f2"/><rect x="23" y="4.5" width="2" height="4" rx="1" fill="#f2f2f2" fill-opacity=".5"/></svg>`,
+};
+function statusbar(){return`<div class="sb"><span>9:41</span><span class="r">${I.sig}${I.wifi}${I.bat}</span></div>`;}
+
+// общий хедер (дисклеймер 1 строка)
+function header(){return`<div style="padding:6px 16px 0;display:flex;align-items:center;gap:12px;">
+  <div class="hdr-back">${I.back}</div>
+  <div style="flex:1;min-width:0;">
+    <div class="title">Дроны МО РФ</div>
+    <div class="disc">По сводкам МО РФ · не верифицировано</div>
+  </div>
+  <div class="hdr-ic">${I.drone('#fa8000')}</div>
+</div>`;}
+
+function periodChips(active){const p=['3М','6М','1Г','Всё'];return`<div class="pchips">${p.map(x=>`<span class="c ${x===active?'on':''}">${x}</span>`).join('')}</div>`;}
+
+// ── метрик-строка LAST/AVG/MAX/Σ ──
+function metrics(){
+ const m=[['LAST',LAST.v,'var(--amber)'],['СРЕД.',AVG,'var(--t1)'],['МАКС',MAXV,'var(--t1)'],['ВСЕГО',TOTAL,'var(--t1)']];
+ return`<div style="display:flex;gap:8px;">${m.map(x=>`
+   <div style="flex:1;background:var(--surf2);border:1px solid var(--line);border-radius:10px;padding:8px 9px;">
+     <div style="font:700 7.5px var(--sans);color:var(--t4);letter-spacing:.6px;">${x[0]}</div>
+     <div class="num" style="font:800 17px var(--mono);color:${x[1]?x[2]:'var(--t4)'};letter-spacing:-.5px;margin-top:2px;">${x[1]}</div></div>`).join('')}</div>`;
+}
+
+// ── мини-чарт с MA7+MA30 ──
+function miniChart(){
+ const W=264,H=130,padL=6,padR=6,padT=12,padB=8;
+ const bw=(W-padL-padR)/DATA.length*0.58;
+ let bars='';
+ DATA.forEach((p,i)=>{const x=xAt(i,W,padL,padR),y=yAt(p.v,H,padT,padB,MAXV),bh=H-padB-y;
+   bars+=`<rect x="${(x-bw/2).toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="2" fill="${i===DATA.length-1?'url(#dgrad)':'#2a2a2a'}"/>`;});
+ const ma7p=linePath(MA7,W,H,padL,padR,padT,padB,MAXV);
+ const ma30p=linePath(MA30,W,H,padL,padR,padT,padB,MAXV);
+ const lastX=xAt(DATA.length-1,W,padL,padR), lastY=yAt(MA7[MA7.length-1],H,padT,padB,MAXV);
+ return`<svg width="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
+   <defs><linearGradient id="dgrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fa8000"/><stop offset="1" stop-color="#d96d00"/></linearGradient></defs>
+   ${[0,.5,1].map(f=>`<line x1="${padL}" y1="${(padT+(H-padT-padB)*f).toFixed(1)}" x2="${W-padR}" y2="${(padT+(H-padT-padB)*f).toFixed(1)}" stroke="rgba(255,255,255,.05)"/>`).join('')}
+   ${bars}
+   <path d="${ma30p}" fill="none" stroke="#5b6cff" stroke-width="1.5" stroke-dasharray="4 3" stroke-linecap="round"/>
+   <path d="${ma7p}" fill="none" stroke="#ffb200" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+   <circle cx="${lastX.toFixed(1)}" cy="${lastY.toFixed(1)}" r="3" fill="#ffb200" stroke="#0a0a0a" stroke-width="1.5"/>
+ </svg>`;
+}
+
+function maLegend(){return`<div style="display:flex;align-items:center;gap:14px;">
+  <span style="display:flex;align-items:center;gap:5px;font:600 9px var(--sans);color:var(--t3);"><span style="width:12px;height:2px;background:var(--avg);display:inline-block;border-radius:2px;"></span>MA7</span>
+  <span style="display:flex;align-items:center;gap:5px;font:600 9px var(--sans);color:var(--t3);"><span style="width:12px;height:0;border-top:2px dashed var(--indigo);display:inline-block;"></span>MA30</span>
+  <span style="display:flex;align-items:center;gap:5px;font:600 9px var(--sans);color:var(--t3);"><span style="width:8px;height:8px;background:var(--amber);display:inline-block;border-radius:2px;"></span>сводка</span>
+</div>`;}
+
+// ── моно-таблица сводок с дельтами ──
+function table(){
+ return DATA.slice().reverse().map((p,i)=>{
+   const prev=DATA[DATA.length-1-i-1];
+   const delta=prev?p.v-prev.v:null;
+   const dc=delta>0?'var(--pos)':delta<0?'var(--neg)':'var(--t4)';
+   return`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;${i<DATA.length-1?'border-bottom:1px solid var(--line);':''}">
+     <span class="num" style="font:500 11px var(--mono);color:var(--t3);">${p.d}</span>
+     <span style="display:flex;align-items:baseline;gap:9px;">
+       <span class="num" style="font:700 13px var(--mono);color:${i===0?'var(--amber)':'var(--t1)'};">${p.v}</span>
+       <span class="num" style="font:600 10px var(--mono);color:${dc};width:30px;text-align:right;">${delta===null?'·':(delta>0?'+'+delta:delta)}</span>
+     </span></div>`;}).join('');
+}
+
+// ════ D — данные (финал) ════
+function D_data(){return`<div class="content" style="overflow-y:auto;">
+  ${header()}
+  <div style="padding:12px 16px 0;">${metrics()}</div>
+  <div style="padding:8px 16px 0;">${periodChips('6М')}</div>
+  <div style="padding:12px 16px 0;display:flex;align-items:center;">
+    <span class="cap-lbl">Сбито БПЛА · по сводкам</span>
+    <span style="margin-left:auto;">${maLegend()}</span>
+  </div>
+  <div class="glass" style="margin:6px 16px;border-radius:14px;padding:6px 4px 2px;">${miniChart()}</div>
+  <div style="padding:2px 16px 0;display:flex;align-items:center;">
+    <span class="cap-lbl">Сводки МО РФ</span>
+    <span style="margin-left:auto;" class="num" style="font:600 9px var(--mono);color:var(--t4);">${DATA.length} записей</span>
+  </div>
+  <div style="padding:0 16px 18px;">${table()}</div>
+ </div>`;}
+
+// ════ D — загрузка ════
+function D_loading(){return`<div class="content">
+  ${header()}
+  <div style="padding:12px 16px 0;display:flex;gap:8px;">
+    ${[0,1,2,3].map(()=>`<div class="skl" style="flex:1;height:46px;border-radius:10px;"></div>`).join('')}
+  </div>
+  <div style="padding:8px 16px 0;"><div class="skl" style="height:30px;border-radius:8px;"></div></div>
+  <div style="padding:14px 16px 0;"><div class="skl" style="height:120px;border-radius:14px;"></div></div>
+  <div style="padding:14px 16px 0;">
+    ${[0,1,2,3,4].map(()=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);"><div class="skl" style="width:60px;height:11px;"></div><div class="skl" style="width:50px;height:11px;"></div></div>`).join('')}
+  </div>
+  <div style="position:absolute;bottom:24px;left:0;right:0;text-align:center;font:600 11px var(--sans);color:var(--t3);">Загружаем сводки МО РФ…</div>
+ </div>`;}
+
+// ════ D — пусто ════
+function D_empty(){return`<div class="content">
+  ${header()}
+  <div style="padding:14px 16px 0;">${periodChips('6М')}</div>
+  <div style="height:calc(100% - 130px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 38px;text-align:center;">
+    <div style="width:84px;height:84px;border-radius:26px;background:linear-gradient(135deg,rgba(250,128,0,.16),rgba(91,108,255,.14));display:flex;align-items:center;justify-content:center;margin-bottom:18px;">${I.target('#fa8000')}</div>
+    <div style="font:800 17px var(--sans);color:var(--t1);margin-bottom:8px;">За 6 месяцев нет данных</div>
+    <div style="font:500 13px var(--sans);color:var(--t2);line-height:1.55;">Сводки МО РФ появятся по мере публикации. Сейчас доступно мало точек — выберите «Всё».</div>
+  </div>
+ </div>`;}
+
+// ════ D — ошибка ════
+function D_error(){return`<div class="content">
+  ${header()}
+  <div style="padding:14px 16px 0;">${periodChips('6М')}</div>
+  <div style="height:calc(100% - 130px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 38px;text-align:center;">
+    <div style="width:74px;height:74px;border-radius:22px;background:rgba(255,67,61,.10);border:1px solid rgba(255,67,61,.22);display:flex;align-items:center;justify-content:center;margin-bottom:18px;">${I.wifioff}</div>
+    <div style="font:800 16px var(--sans);color:var(--t1);margin-bottom:7px;">Не удалось загрузить</div>
+    <div style="font:500 12px var(--sans);color:var(--t2);line-height:1.5;margin-bottom:20px;">Проверьте соединение — данные по дронам не пришли с сервера.</div>
+    <div style="display:inline-flex;align-items:center;gap:7px;padding:11px 22px;border-radius:13px;background:var(--surf);border:1px solid var(--line2);">
+      ${I.refresh}<span style="font:700 13px var(--sans);color:var(--amber);">Повторить</span></div>
+  </div>
+ </div>`;}
+
+const SCREENS=[
+ {g:'ВАРИАНТ D «ТЕРМИНАЛ» — все состояния'},
+ {f:D_data,cap:'<b>Данные.</b> Метрик-строка LAST/СРЕД/МАКС/ВСЕГО, чипы 3М/6М/1Г/Всё, мини-чарт MA7+MA30+бары, моно-таблица сводок с дельтами +/−'},
+ {f:D_loading,cap:'<b>Загрузка.</b> Скелетон-shimmer повторяет каркас: 4 метрики, чипы, чарт, строки таблицы'},
+ {f:D_empty,cap:'<b>Нет данных.</b> Бейдж-градиент + подсказка переключить на «Всё»'},
+ {f:D_error,cap:'<b>Ошибка.</b> Красный бейдж, кнопка «Повторить» (янтарь)'},
+];
+const row=document.getElementById('row');
+SCREENS.forEach(s=>{
+ if(s.g){const h=document.createElement('div');h.className='grouphdr';h.textContent=s.g;row.appendChild(h);return;}
+ const el=document.createElement('div');el.className='item';
+ el.innerHTML=`<div class="phone"><div class="island"></div><div class="screen">${statusbar()}${s.f()}</div></div><div class="cap">${s.cap}</div>`;
+ row.appendChild(el);
+});
+</script>
+</body>
+</html>

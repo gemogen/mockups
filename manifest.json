@@ -48,6 +48,27 @@
           "updated": "2026-06-24"
         }
       ]
+    },
+    {
+      "slug": "orientir",
+      "name": "Ориентир",
+      "icon": "🛰️",
+      "screens": [
+        {
+          "id": "drones",
+          "title": "Тренды войны — Дроны МО РФ",
+          "file": "orientir/drones.html",
+          "status": "на согласовании",
+          "updated": "2026-06-30"
+        },
+        {
+          "id": "lab",
+          "title": "lab",
+          "file": "orientir/lab.html",
+          "status": "на согласовании",
+          "updated": "2026-06-30"
+        }
+      ]
     }
   ]
 }

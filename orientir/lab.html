@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ориентир — Лаборатория зависимостей · 7 концепций</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+  :root{
+    --bg:#0A0A0A; --bg2:#0E0E0E; --scaffold:#000;
+    --surf:#141414; --surf2:#101010;
+    --line:rgba(255,255,255,.07); --line2:rgba(255,255,255,.12);
+    --t1:#F2F2F2; --t2:#B8B8B8; --t3:#7A7A7A; --t4:#525252;
+    --amber:#FA8000; --amberD:#D96D00; --avg:#FFB200; --indigo:#5B6CFF;
+    --pos:#4ADE80; --neg:#FF433D; --barRest:#2A2A2A; --onAmber:#1A0E00;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  body{background:#050505;color:#fff;font-family:'Manrope',sans-serif;padding:36px 22px 80px;}
+  .ptitle{text-align:center;font-size:26px;font-weight:800;letter-spacing:-.5px;margin-bottom:6px;}
+  .psub{text-align:center;color:#7a7a7a;font-size:12.5px;max-width:820px;margin:0 auto 10px;line-height:1.55;}
+  .tokens{max-width:920px;margin:0 auto 34px;display:flex;flex-wrap:wrap;gap:7px;justify-content:center;}
+  .tok{font:600 11px 'JetBrains Mono';padding:5px 10px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid var(--line);color:#9a9a9a;}
+  .tok b{color:#fff;}
+  .row{display:flex;flex-wrap:wrap;gap:46px 26px;justify-content:center;max-width:1820px;margin:0 auto;}
+  .item{display:flex;flex-direction:column;align-items:center;}
+  .cap{margin-top:12px;font-size:12px;color:#8a8a8a;letter-spacing:.2px;text-align:center;max-width:300px;line-height:1.5;}
+  .cap b{color:var(--amber);font-weight:700;}
+  .grouphdr{width:100%;text-align:center;font:800 14px Manrope;margin:30px 0 -10px;color:#cfcfcf;letter-spacing:.3px;}
+  .grouphdr span{color:var(--t4);font-weight:600;font-size:12px;}
+
+  .phone{width:300px;height:648px;border-radius:42px;padding:11px;background:#1a1a1a;
+         box-shadow:0 40px 80px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.05);flex-shrink:0;position:relative;}
+  .screen{width:100%;height:100%;border-radius:32px;overflow:hidden;position:relative;background:var(--bg);}
+  .island{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:86px;height:25px;background:#000;border-radius:16px;z-index:60;}
+  .sb{display:flex;justify-content:space-between;align-items:center;padding:13px 22px 5px;font:600 13px Manrope;position:relative;z-index:40;}
+  .sb .r{display:flex;gap:6px;}
+  .content{height:calc(100% - 42px);overflow:hidden;position:relative;}
+  i[data-lucide]{width:18px;height:18px;}
+  .mono{font-family:'JetBrains Mono';}
+
+  /* shared bits */
+  .appbar{padding:4px 18px 12px;display:flex;align-items:center;gap:11px;}
+  .backbtn{width:34px;height:34px;border-radius:11px;background:var(--surf);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .backbtn i{color:var(--t2);}
+  .h-title{font:800 18px Manrope;letter-spacing:-.3px;}
+  .h-sub{font:600 11px Manrope;color:var(--t3);margin-top:1px;}
+  /* period pills — system style: underline active, no amber chip */
+  .pp{display:flex;gap:14px;align-items:flex-end;}
+  .pp span{font:700 11px Manrope;letter-spacing:.5px;color:var(--t4);padding-bottom:3px;}
+  .pp span.on{color:var(--t1);border-bottom:1.5px solid var(--t2);}
+  .lbl{font:700 10px Manrope;color:var(--t3);letter-spacing:1.4px;}
+  .skl{background:linear-gradient(90deg,rgba(255,255,255,.04) 25%,rgba(255,255,255,.09) 37%,rgba(255,255,255,.04) 63%);background-size:400% 100%;animation:sh 1.4s ease infinite;border-radius:6px;}
+  @keyframes sh{0%{background-position:100% 0}100%{background-position:-100% 0}}
+</style>
+</head>
+<body>
+<div class="ptitle">Ориентир — «Лаборатория зависимостей»</div>
+<div class="psub">7 концепций внутри дизайн-системы (терминальный чёрный + янтарь #FA8000, Manrope + JetBrains Mono, янтарь только на акцентах, декор нейтральный). IC = сдвинутая корреляция lag-1, фактор за T-1 → результат за T. Каждая пара: экран «Инструменты» + экран «Факторы».</div>
+<div class="tokens" id="tokens"></div>
+<div class="row" id="row"></div>
+
+<script>
+const sb=()=>`<div class="sb"><span>9:41</span><span class="r"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div>`;
+
+// ===== DATA =====
+// Зависимые инструменты со своим топ-1 предиктором (IC)
+const INST=[
+ {t:'IMOEX TR',n:'Индекс МосБиржи п.д.',top:'Brent',ic:0.61,pos:true},
+ {t:'SBER',n:'Сбербанк',top:'Ключевая ставка',ic:-0.54,pos:false},
+ {t:'LKOH',n:'ЛУКОЙЛ',top:'Urals',ic:0.72,pos:true},
+ {t:'GAZP',n:'Газпром',top:'Газ TTF',ic:0.48,pos:true},
+ {t:'GMKN',n:'Норникель',top:'Никель',ic:0.66,pos:true},
+ {t:'USD/RUB',n:'Курс доллара',top:'DXY',ic:0.58,pos:true},
+ {t:'ОФЗ 10Y',n:'Доходность',top:'Ключевая ставка',ic:0.69,pos:true},
+];
+// Факторы для выбранного инструмента (LKOH, горизонт «День»), по убыванию |IC|
+const FAC=[
+ {n:'Urals',c:'Нефть',ic:0.72},
+ {n:'Brent',c:'Нефть',ic:0.68},
+ {n:'DXY',c:'Валюты',ic:-0.41},
+ {n:'S&P 500',c:'Индексы',ic:0.37},
+ {n:'CNY/RUB',c:'Валюты',ic:0.29},
+ {n:'Золото',c:'Металлы',ic:0.18},
+ {n:'VIX',c:'Индексы',ic:-0.15},
+ {n:'Газ TTF',c:'Сырьё',ic:0.11},
+ {n:'Дроны МО РФ',c:'Геополитика',ic:-0.07,exp:true},
+];
+const icColor=ic=>ic>=0?'var(--pos)':'var(--neg)';
+const sign=ic=>(ic>=0?'+':'−')+Math.abs(ic).toFixed(2);
+const fmt=ic=>ic.toFixed(2);
+
+// ============================================================
+// CONCEPT 1 — «Бар-термометр» (горизонтальные центрированные IC-бары от нуля)
+// ============================================================
+function C1_inst(){return`<div class="content">
+ <div class="appbar"><div style="flex:1"><div class="h-title">Лаборатория</div><div class="h-sub">Кто кого предсказывает · IC lag-1</div></div>
+  <div class="pp"><span>День</span><span class="on">Неделя</span><span>Месяц</span></div></div>
+ <div style="padding:0 16px;">
+  <div class="lbl" style="margin:2px 4px 9px;">ИНСТРУМЕНТЫ · 7</div>
+  ${INST.map(x=>{const w=Math.abs(x.ic)*100;return`
+   <div style="display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:14px;background:var(--surf);border:1px solid var(--line);margin-bottom:7px;">
+     <div style="flex:1;min-width:0;"><div style="font:700 13.5px Manrope;color:var(--t1);">${x.t}</div>
+       <div style="font:500 10.5px Manrope;color:var(--t3);">${x.n}</div></div>
+     <div style="text-align:right;"><div style="font:600 9px Manrope;color:var(--t3);letter-spacing:.3px;">топ-предиктор</div>
+       <div style="font:700 11px Manrope;color:var(--t2);">${x.top}</div></div>
+     <div style="width:54px;text-align:right;"><div class="mono" style="font:700 15px 'JetBrains Mono';color:${icColor(x.ic)};">${sign(x.ic)}</div>
+       <div style="height:3px;border-radius:2px;background:var(--barRest);margin-top:4px;"><div style="height:100%;width:${w}%;background:${icColor(x.ic)};border-radius:2px;"></div></div></div>
+     <i data-lucide="chevron-right" style="width:16px;color:var(--t4);"></i>
+   </div>`}).join('')}
+ </div></div>`}
+
+function C1_fac(){return`<div class="content">
+ <div class="appbar"><div class="backbtn"><i data-lucide="chevron-left"></i></div>
+  <div style="flex:1"><div class="h-title">ЛУКОЙЛ <span style="font:600 11px 'JetBrains Mono';color:var(--amber);">LKOH</span></div><div class="h-sub">Горизонт: День · факторы за T-1</div></div></div>
+ <div style="padding:0 16px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin:2px 4px 10px;">
+    <span class="lbl">ФАКТОРЫ · по |IC|</span>
+    <span style="display:flex;gap:8px;font:600 9px Manrope;"><span style="color:var(--pos);">▶ помогает росту</span><span style="color:var(--neg);">◀ против</span></span></div>
+  ${FAC.map((f,i)=>{const top5=i<5;const w=Math.abs(f.ic)*100;const c=icColor(f.ic);
+   return`<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:13px;margin-bottom:6px;background:${top5?'var(--surf)':'transparent'};border:1px solid ${top5?'var(--line)':'transparent'};opacity:${top5?1:.55};">
+     <div style="width:58px;flex-shrink:0;"><div style="font:700 12px Manrope;color:var(--t1);">${f.n}${f.exp?' <i data-lucide="flask-conical" style="width:11px;color:var(--avg);vertical-align:-1px;"></i>':''}</div></div>
+     <div style="flex:1;height:18px;position:relative;display:flex;align-items:center;">
+       <div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line2);"></div>
+       ${f.ic>=0?`<div style="position:absolute;left:50%;height:10px;width:${w/2}%;background:var(--pos);border-radius:0 4px 4px 0;"></div>`
+                :`<div style="position:absolute;right:50%;height:10px;width:${w/2}%;background:var(--neg);border-radius:4px 0 0 4px;"></div>`}
+     </div>
+     <div class="mono" style="width:46px;text-align:right;font:700 13px 'JetBrains Mono';color:${c};">${sign(f.ic)}</div>
+   </div>`}).join('')}
+  <div style="margin-top:6px;padding:11px;border-radius:13px;border:1.4px dashed rgba(250,128,0,.32);text-align:center;font:700 12px Manrope;color:var(--amber);display:flex;align-items:center;justify-content:center;gap:6px;"><i data-lucide="plus" style="width:15px;"></i>Добавить фактор</div>
+ </div></div>`}
+
+// ============================================================
+// CONCEPT 2 — «Цифра-герой моно» (крупный IC моноширью, минимум графики)
+// ============================================================
+function C2_inst(){return`<div class="content">
+ <div class="appbar"><div style="flex:1"><div class="h-title">Зависимости</div><div class="h-sub">Сила предсказания · IC</div></div>
+  <div class="pp"><span class="on">День</span><span>Неделя</span><span>Месяц</span></div></div>
+ <div style="padding:0 16px;">
+  <div class="lbl" style="margin:2px 4px 9px;">ЧТО ПРЕДСКАЗЫВАЕМ</div>
+  ${INST.map(x=>{return`
+   <div style="display:flex;align-items:center;padding:13px 14px;border-bottom:1px solid var(--line);">
+     <div style="flex:1;"><div style="font:800 15px Manrope;color:var(--t1);letter-spacing:-.2px;">${x.t}</div>
+       <div style="font:500 10.5px Manrope;color:var(--t3);margin-top:1px;">лучший предиктор — <span style="color:var(--t2);font-weight:700;">${x.top}</span></div></div>
+     <div style="text-align:right;display:flex;align-items:baseline;gap:5px;">
+       <span class="mono" style="font:800 26px 'JetBrains Mono';color:${icColor(x.ic)};letter-spacing:-1px;">${fmt(Math.abs(x.ic))}</span>
+       <span style="font:700 11px 'JetBrains Mono';color:${icColor(x.ic)};">${x.ic>=0?'↑':'↓'}</span></div>
+     <i data-lucide="chevron-right" style="width:16px;color:var(--t4);margin-left:8px;"></i>
+   </div>`}).join('')}
+ </div></div>`}
+
+function C2_fac(){return`<div class="content">
+ <div class="appbar"><div class="backbtn"><i data-lucide="chevron-left"></i></div>
+  <div style="flex:1"><div class="h-title">LKOH · День</div><div class="h-sub">Ранг факторов по силе |IC|</div></div></div>
+ <div style="padding:0 16px;">
+  <div style="background:var(--surf);border:1px solid var(--line);border-radius:14px;padding:13px 15px;margin-bottom:12px;display:flex;align-items:center;gap:14px;">
+    <div><div style="font:600 9px Manrope;color:var(--t3);letter-spacing:1px;">САМЫЙ СИЛЬНЫЙ</div>
+      <div style="font:800 16px Manrope;color:var(--t1);margin-top:2px;">Urals</div></div>
+    <div style="margin-left:auto;text-align:right;"><span class="mono" style="font:800 30px 'JetBrains Mono';color:var(--pos);letter-spacing:-1.5px;">+0.72</span>
+      <div style="font:600 9px Manrope;color:var(--t3);">IC · lag-1</div></div></div>
+  <div class="lbl" style="margin:2px 4px 8px;">ВСЕ ФАКТОРЫ · 9</div>
+  ${FAC.map((f,i)=>{const top5=i<5;const c=icColor(f.ic);
+   return`<div style="display:flex;align-items:center;gap:11px;padding:9px 6px;border-bottom:1px solid var(--line);opacity:${top5?1:.5};">
+     <span class="mono" style="width:20px;font:700 11px 'JetBrains Mono';color:${top5?'var(--amber)':'var(--t4)'};">${i+1}</span>
+     <div style="flex:1;"><span style="font:700 13px Manrope;color:var(--t1);">${f.n}</span>
+       ${f.exp?'<span style="margin-left:6px;font:700 8px Manrope;color:var(--avg);border:1px solid rgba(255,178,0,.3);background:rgba(255,178,0,.08);padding:1px 5px;border-radius:5px;letter-spacing:.5px;">ЭКСП</span>':''}
+       <span style="font:500 10px Manrope;color:var(--t3);margin-left:5px;">${f.c}</span></div>
+     <span class="mono" style="font:800 16px 'JetBrains Mono';color:${c};">${sign(f.ic)}</span>
+   </div>`}).join('')}
+  <div style="margin-top:10px;padding:11px;border-radius:13px;border:1.4px dashed rgba(250,128,0,.32);text-align:center;font:700 12px Manrope;color:var(--amber);display:flex;align-items:center;justify-content:center;gap:6px;"><i data-lucide="plus" style="width:15px;"></i>Добавить фактор</div>
+ </div></div>`}
+
+// ============================================================
+// CONCEPT 3 — «Диверг-бары bento» (карточки, симметричный бар +/- с осью)
+// ============================================================
+function C3_inst(){return`<div class="content">
+ <div class="appbar"><div style="flex:1"><div class="h-title">Лаборатория</div><div class="h-sub">7 инструментов · топ-фактор</div></div>
+  <div style="width:34px;height:34px;border-radius:11px;background:var(--surf);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;"><i data-lucide="sliders-horizontal" style="width:16px;color:var(--t2);"></i></div></div>
+ <div style="padding:0 16px 10px;"><div class="pp" style="gap:18px;"><span class="on">День</span><span>Неделя</span><span>Месяц</span></div></div>
+ <div style="padding:0 16px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+  ${INST.slice(0,6).map(x=>{const w=Math.abs(x.ic)*100;const c=icColor(x.ic);
+   return`<div style="background:var(--surf);border:1px solid var(--line);border-radius:14px;padding:11px 12px;">
+     <div style="font:800 13px Manrope;color:var(--t1);">${x.t}</div>
+     <div style="font:500 9px Manrope;color:var(--t3);margin:1px 0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">← ${x.top}</div>
+     <div style="display:flex;align-items:baseline;justify-content:space-between;">
+       <span class="mono" style="font:800 19px 'JetBrains Mono';color:${c};letter-spacing:-.5px;">${sign(x.ic)}</span>
+       <span style="font:600 8px Manrope;color:var(--t4);">IC</span></div>
+     <div style="height:4px;border-radius:2px;background:var(--barRest);margin-top:7px;overflow:hidden;"><div style="height:100%;width:${w}%;background:${c};border-radius:2px;"></div></div>
+   </div>`}).join('')}
+ </div></div>`}
+
+function C3_fac(){return`<div class="content">
+ <div class="appbar"><div class="backbtn"><i data-lucide="chevron-left"></i></div>
+  <div style="flex:1"><div class="h-title">ЛУКОЙЛ</div><div class="h-sub">LKOH · День · 9 факторов</div></div></div>
+ <div style="padding:0 16px;">
+  <div class="lbl" style="margin:2px 4px 10px;">РАНЖИР ПО |IC| · ось = 0</div>
+  ${FAC.map((f,i)=>{const top5=i<5;const w=Math.abs(f.ic)*100;const c=icColor(f.ic);
+   return`<div style="margin-bottom:9px;opacity:${top5?1:.5};">
+     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+       <span style="font:700 12px Manrope;color:var(--t1);">${f.n}${f.exp?' <i data-lucide="flask-conical" style="width:10px;color:var(--avg);vertical-align:-1px;"></i>':''}
+         <span style="font:500 9px Manrope;color:var(--t3);">${f.c}</span></span>
+       <span class="mono" style="font:700 12px 'JetBrains Mono';color:${c};">${sign(f.ic)}</span></div>
+     <div style="position:relative;height:9px;background:var(--surf2);border-radius:5px;">
+       <div style="position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--line2);"></div>
+       ${f.ic>=0?`<div style="position:absolute;left:50%;top:0;bottom:0;width:${w/2}%;background:var(--pos);border-radius:0 5px 5px 0;"></div>`
+                :`<div style="position:absolute;right:50%;top:0;bottom:0;width:${w/2}%;background:var(--neg);border-radius:5px 0 0 5px;"></div>`}
+     </div>
+   </div>`}).join('')}
+  <div style="margin-top:8px;padding:11px;border-radius:13px;border:1.4px dashed rgba(250,128,0,.32);text-align:center;font:700 12px Manrope;color:var(--amber);display:flex;align-items:center;justify-content:center;gap:6px;"><i data-lucide="plus" style="width:15px;"></i>Добавить фактор</div>
+ </div></div>`}
+
+// ============================================================
+// CONCEPT 4 — «Сигнал-радар» (круговой gauge силы IC на инструмент)
+// ============================================================
+function gauge(ic){const frac=Math.abs(ic);const r=26,C=2*Math.PI*r,off=C*(1-frac);const c=ic>=0?'#4ADE80':'#FF433D';
+ return`<svg width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="${r}" fill="none" stroke="#2A2A2A" stroke-width="5"/>
+   <circle cx="32" cy="32" r="${r}" fill="none" stroke="${c}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${off}" transform="rotate(-90 32 32)"/>
+   <text x="32" y="34" text-anchor="middle" font-family="JetBrains Mono" font-weight="800" font-size="14" fill="${c}">${(ic>=0?'+':'−')+Math.abs(ic).toFixed(2)}</text></svg>`}
+function C4_inst(){return`<div class="content">
+ <div class="appbar"><div style="flex:1"><div class="h-title">Сила связей</div><div class="h-sub">|IC| как заряд кольца</div></div>
+  <div class="pp"><span>День</span><span class="on">Неделя</span><span>Месяц</span></div></div>
+ <div style="padding:0 16px;">
+  <div class="lbl" style="margin:2px 4px 10px;">ИНСТРУМЕНТЫ</div>
+  ${INST.slice(0,6).map(x=>`
+   <div style="display:flex;align-items:center;gap:13px;padding:9px 12px;border-radius:14px;background:var(--surf);border:1px solid var(--line);margin-bottom:7px;">
+     ${gauge(x.ic)}
+     <div style="flex:1;"><div style="font:800 14px Manrope;color:var(--t1);">${x.t}</div>
+       <div style="font:500 10px Manrope;color:var(--t3);">${x.n}</div>
+       <div style="font:600 10px Manrope;color:var(--t2);margin-top:3px;display:flex;align-items:center;gap:4px;"><i data-lucide="zap" style="width:11px;color:var(--amber);"></i>${x.top}</div></div>
+     <i data-lucide="chevron-right" style="width:16px;color:var(--t4);"></i>
+   </div>`).join('')}
+ </div></div>`}
+
+function C4_fac(){return`<div class="content">
+ <div class="appbar"><div class="backbtn"><i data-lucide="chevron-left"></i></div>
+  <div style="flex:1"><div class="h-title">LKOH · Неделя</div><div class="h-sub">Факторы-предикторы</div></div></div>
+ <div style="padding:0 16px;">
+  <div style="display:flex;gap:8px;margin-bottom:12px;">
+   ${FAC.slice(0,3).map((f,i)=>`<div style="flex:1;background:var(--surf);border:1px solid ${i===0?'rgba(250,128,0,.35)':'var(--line)'};border-radius:14px;padding:11px 8px;text-align:center;">
+     ${gauge(f.ic)}
+     <div style="font:700 11px Manrope;color:var(--t1);margin-top:5px;">${f.n}</div></div>`).join('')}
+  </div>
+  <div class="lbl" style="margin:2px 4px 8px;">ОСТАЛЬНЫЕ</div>
+  ${FAC.slice(3).map(f=>{const w=Math.abs(f.ic)*100;const c=icColor(f.ic);
+   return`<div style="display:flex;align-items:center;gap:10px;padding:8px 6px;border-bottom:1px solid var(--line);opacity:.6;">
+     <span style="flex:1;font:600 12px Manrope;color:var(--t2);">${f.n}${f.exp?' <span style="font:700 8px Manrope;color:var(--avg);">· эксп</span>':''}</span>
+     <div style="width:64px;height:4px;border-radius:2px;background:var(--barRest);overflow:hidden;"><div style="height:100%;width:${w}%;background:${c};border-radius:2px;"></div></div>
+     <span class="mono" style="width:42px;text-align:right;font:700 12px 'JetBrains Mono';color:${c};">${sign(f.ic)}</span>
+   </div>`}).join('')}
+  <div style="margin-top:10px;padding:11px;border-radius:13px;border:1.4px dashed rgba(250,128,0,.32);text-align:center;font:700 12px Manrope;color:var(--amber);display:flex;align-items:center;justify-content:center;gap:6px;"><i data-lucide="plus" style="width:15px;"></i>Добавить фактор</div>
+ </div></div>`}
+
+// ============================================================
+// CONCEPT 5 — «Поток T-1 → T» (визуальная метафора лага, стрелки связи)
+// ============================================================
+function C5_inst(){return`<div class="content">
+ <div class="appbar"><div style="flex:1"><div class="h-title">Что двигает рынок</div><div class="h-sub">фактор<span style="color:var(--t2)"> T-1</span> → инструмент<span style="color:var(--t2)"> T</span></div></div>
+  <div class="pp"><span class="on">День</span><span>Неделя</span><span>Месяц</span></div></div>
+ <div style="padding:0 16px;">
+  ${INST.map(x=>{const c=icColor(x.ic);return`
+   <div style="display:flex;align-items:center;padding:12px 13px;border-radius:14px;background:var(--surf);border:1px solid var(--line);margin-bottom:7px;">
+     <div style="text-align:center;min-width:62px;">
+       <div style="font:600 8px Manrope;color:var(--t4);letter-spacing:.5px;">T-1</div>
+       <div style="font:700 11px Manrope;color:var(--t2);">${x.top}</div></div>
+     <div style="flex:1;display:flex;align-items:center;justify-content:center;position:relative;padding:0 6px;">
+       <div style="flex:1;height:2px;background:linear-gradient(90deg,transparent,${c});border-radius:2px;"></div>
+       <span class="mono" style="font:700 10px 'JetBrains Mono';color:${c};background:var(--bg);padding:0 5px;position:absolute;">${sign(x.ic)}</span>
+       <i data-lucide="chevron-right" style="width:13px;color:${c};margin-left:-3px;"></i></div>
+     <div style="text-align:center;min-width:62px;">
+       <div style="font:600 8px Manrope;color:var(--t4);letter-spacing:.5px;">T</div>
+       <div style="font:800 13px Manrope;color:var(--t1);">${x.t}</div></div>
+   </div>`}).join('')}
+ </div></div>`}
+
+function C5_fac(){return`<div class="content">
+ <div class="appbar"><div class="backbtn"><i data-lucide="chevron-left"></i></div>
+  <div style="flex:1"><div class="h-title">→ LKOH</div><div class="h-sub">Что предсказывает за день до · День</div></div></div>
+ <div style="padding:0 16px;">
+  <div class="lbl" style="margin:2px 4px 11px;">ФАКТОРЫ T-1 · по силе</div>
+  ${FAC.map((f,i)=>{const top5=i<5;const w=Math.abs(f.ic)*100;const c=icColor(f.ic);
+   return`<div style="display:flex;align-items:center;gap:11px;margin-bottom:11px;opacity:${top5?1:.5};">
+     <div style="width:88px;text-align:right;"><div style="font:700 12px Manrope;color:var(--t1);">${f.n}</div>
+       <div style="font:500 9px Manrope;color:var(--t3);">${f.c}</div></div>
+     <div style="flex:1;display:flex;align-items:center;gap:6px;">
+       <div style="flex:1;height:7px;border-radius:4px;background:var(--surf2);overflow:hidden;"><div style="height:100%;width:${w}%;background:${c};border-radius:4px;"></div></div>
+       <span class="mono" style="width:42px;font:700 12px 'JetBrains Mono';color:${c};">${sign(f.ic)}</span></div>
+   </div>`}).join('')}
+  <div style="margin-top:4px;padding:11px;border-radius:13px;border:1.4px dashed rgba(250,128,0,.32);text-align:center;font:700 12px Manrope;color:var(--amber);display:flex;align-items:center;justify-content:center;gap:6px;"><i data-lucide="flask-conical" style="width:15px;"></i>Добавить фактор</div>
+ </div></div>`}
+
+// ============================================================
+// CONCEPT 6 — «Тепловая лента» (цветовая интенсивность = сила, плотная таблица)
+// ============================================================
+function heatBg(ic){const a=Math.min(Math.abs(ic),1);const rgb=ic>=0?'74,222,128':'255,67,61';return`rgba(${rgb},${(0.10+a*0.45).toFixed(2)})`}
+function C6_inst(){return`<div class="content">
+ <div class="appbar"><div style="flex:1"><div class="h-title">Матрица силы</div><div class="h-sub">яркость = |IC|</div></div>
+  <div class="pp"><span>День</span><span>Неделя</span><span class="on">Месяц</span></div></div>
+ <div style="padding:0 14px;">
+  <div style="display:flex;font:700 8px Manrope;color:var(--t4);letter-spacing:.8px;padding:0 8px 6px;">
+    <span style="flex:1;">ИНСТРУМЕНТ</span><span style="width:80px;">ПРЕДИКТОР</span><span style="width:48px;text-align:right;">IC</span></div>
+  ${INST.map(x=>`
+   <div style="display:flex;align-items:center;padding:11px 8px;border-radius:9px;background:${heatBg(x.ic)};margin-bottom:4px;">
+     <span style="flex:1;font:800 13px Manrope;color:var(--t1);">${x.t}</span>
+     <span style="width:80px;font:600 10px Manrope;color:var(--t1);">${x.top}</span>
+     <span class="mono" style="width:48px;text-align:right;font:800 14px 'JetBrains Mono';color:#fff;">${sign(x.ic)}</span>
+   </div>`).join('')}
+  <div style="display:flex;align-items:center;gap:6px;justify-content:center;margin-top:12px;font:600 9px Manrope;color:var(--t3);">
+    <span>слабо</span><div style="width:90px;height:6px;border-radius:3px;background:linear-gradient(90deg,rgba(74,222,128,.12),rgba(74,222,128,.6));"></div><span>сильно +</span></div>
+ </div></div>`}
+
+function C6_fac(){return`<div class="content">
+ <div class="appbar"><div class="backbtn"><i data-lucide="chevron-left"></i></div>
+  <div style="flex:1"><div class="h-title">LKOH · Месяц</div><div class="h-sub">тепловой ранг факторов</div></div></div>
+ <div style="padding:0 14px;">
+  <div class="lbl" style="margin:2px 8px 8px;">ФАКТОРЫ · 9</div>
+  ${FAC.map((f,i)=>`
+   <div style="display:flex;align-items:center;gap:10px;padding:10px 11px;border-radius:9px;background:${heatBg(f.ic)};margin-bottom:4px;${i>=5?'opacity:.62;':''}">
+     <span class="mono" style="width:16px;font:700 10px 'JetBrains Mono';color:#fff;opacity:.6;">${i+1}</span>
+     <span style="flex:1;font:700 12.5px Manrope;color:#fff;">${f.n}${f.exp?' <i data-lucide="flask-conical" style="width:10px;vertical-align:-1px;"></i>':''}</span>
+     <span style="font:500 9px Manrope;color:rgba(255,255,255,.7);">${f.c}</span>
+     <span class="mono" style="width:46px;text-align:right;font:800 14px 'JetBrains Mono';color:#fff;">${sign(f.ic)}</span>
+   </div>`).join('')}
+  <div style="margin-top:9px;padding:11px;border-radius:11px;border:1.4px dashed rgba(250,128,0,.32);text-align:center;font:700 12px Manrope;color:var(--amber);display:flex;align-items:center;justify-content:center;gap:6px;"><i data-lucide="plus" style="width:15px;"></i>Добавить фактор</div>
+ </div></div>`}
+
+// ============================================================
+// CONCEPT 7 — «Карточки-чемпионы» (фокус на топ-предикторе как на герое)
+// ============================================================
+function C7_inst(){return`<div class="content">
+ <div class="appbar"><div style="flex:1"><div class="h-title">Лаборатория</div><div class="h-sub">сильнейшая связь каждого</div></div>
+  <div class="pp"><span class="on">День</span><span>Неделя</span><span>Месяц</span></div></div>
+ <div style="padding:0 16px;">
+  ${INST.slice(0,5).map((x,i)=>{const c=icColor(x.ic);const w=Math.abs(x.ic)*100;const hero=i===0;
+   return`<div style="background:${hero?'linear-gradient(135deg,rgba(250,128,0,.10),rgba(250,128,0,.02))':'var(--surf)'};border:1px solid ${hero?'rgba(250,128,0,.28)':'var(--line)'};border-radius:16px;padding:13px 15px;margin-bottom:8px;">
+     <div style="display:flex;align-items:center;justify-content:space-between;">
+       <div><div style="font:800 16px Manrope;color:var(--t1);letter-spacing:-.3px;">${x.t}</div>
+         <div style="font:500 10px Manrope;color:var(--t3);">${x.n}</div></div>
+       ${hero?'<span style="font:700 8px Manrope;color:var(--amber);border:1px solid rgba(250,128,0,.4);padding:2px 7px;border-radius:6px;letter-spacing:.5px;">СИЛЬНЕЙШАЯ</span>':'<i data-lucide="chevron-right" style="width:16px;color:var(--t4);"></i>'}</div>
+     <div style="display:flex;align-items:center;gap:9px;margin-top:11px;">
+       <div style="flex:1;"><div style="font:600 9px Manrope;color:var(--t3);letter-spacing:.4px;">ТОП-ПРЕДИКТОР</div>
+         <div style="font:700 13px Manrope;color:var(--t1);">${x.top}</div>
+         <div style="height:4px;border-radius:2px;background:var(--barRest);margin-top:6px;overflow:hidden;"><div style="height:100%;width:${w}%;background:${c};"></div></div></div>
+       <span class="mono" style="font:800 24px 'JetBrains Mono';color:${c};letter-spacing:-1px;">${sign(x.ic)}</span>
+     </div>
+   </div>`}).join('')}
+ </div></div>`}
+
+function C7_fac(){return`<div class="content">
+ <div class="appbar"><div class="backbtn"><i data-lucide="chevron-left"></i></div>
+  <div style="flex:1"><div class="h-title">ЛУКОЙЛ · LKOH</div><div class="h-sub">Топ-5 предикторов · День</div></div></div>
+ <div style="padding:0 16px;">
+  ${FAC.slice(0,5).map((f,i)=>{const c=icColor(f.ic);const w=Math.abs(f.ic)*100;
+   return`<div style="background:var(--surf);border:1px solid ${i===0?'rgba(250,128,0,.3)':'var(--line)'};border-radius:14px;padding:11px 14px;margin-bottom:7px;display:flex;align-items:center;gap:12px;">
+     <span class="mono" style="font:800 18px 'JetBrains Mono';color:${i===0?'var(--amber)':'var(--t4)'};width:18px;">${i+1}</span>
+     <div style="flex:1;"><div style="font:700 13px Manrope;color:var(--t1);">${f.n} <span style="font:500 9px Manrope;color:var(--t3);">${f.c}</span></div>
+       <div style="height:5px;border-radius:3px;background:var(--barRest);margin-top:7px;overflow:hidden;"><div style="height:100%;width:${w}%;background:${c};border-radius:3px;"></div></div></div>
+     <span class="mono" style="font:800 18px 'JetBrains Mono';color:${c};">${sign(f.ic)}</span>
+   </div>`}).join('')}
+  <div class="lbl" style="margin:13px 4px 8px;">СЛАБЕЕ · 4</div>
+  ${FAC.slice(5).map(f=>{const c=icColor(f.ic);
+   return`<div style="display:flex;align-items:center;gap:10px;padding:6px;opacity:.55;">
+     <span style="flex:1;font:600 12px Manrope;color:var(--t2);">${f.n}${f.exp?' <span style="font:700 8px Manrope;color:var(--avg);">эксп</span>':''}</span>
+     <span class="mono" style="font:700 12px 'JetBrains Mono';color:${c};">${sign(f.ic)}</span>
+   </div>`}).join('')}
+  <div style="margin-top:8px;padding:11px;border-radius:13px;border:1.4px dashed rgba(250,128,0,.32);text-align:center;font:700 12px Manrope;color:var(--amber);display:flex;align-items:center;justify-content:center;gap:6px;"><i data-lucide="plus" style="width:15px;"></i>Добавить экспериментальный фактор</div>
+ </div></div>`}
+
+// ===== RENDER =====
+const TOKENS=[['фон','#0A0A0A'],['surf','#141414'],['акцент','#FA8000'],['+IC','#4ADE80'],['−IC','#FF433D'],['эксп','#FFB200'],['радиус','14'],['шрифт','Manrope'],['цифры','JetBrains Mono']];
+document.getElementById('tokens').innerHTML=TOKENS.map(t=>`<span class="tok">${t[0]} <b>${t[1]}</b></span>`).join('');
+
+const C=[
+ {g:'A · Бар-термометр',sub:'дивергентный IC-бар от нуля',i:C1_inst,f:C1_fac,cap:'<b>A</b> Список + симметричный бар (рост/против от центра), число моноширью. Факторы — топ-5 в карточках, хвост приглушён.'},
+ {g:'B · Цифра-герой',sub:'крупный моно-IC, минимум графики',i:C2_inst,f:C2_fac,cap:'<b>B</b> Терминальный список-строки, гигантское IC-число. Факторы — ранг 1–9 + герой-карточка сильнейшего сверху.'},
+ {g:'C · Bento-сетка',sub:'2 колонки карточек',i:C3_inst,f:C3_fac,cap:'<b>C</b> Плитки-bento с топ-фактором. Факторы — дивергентные бары с осью 0.'},
+ {g:'D · Сигнал-радар',sub:'кольцо-gauge = |IC|',i:C4_inst,f:C4_fac,cap:'<b>D</b> Заряд кольца = сила связи. Факторы — топ-3 как gauge-герои + список.'},
+ {g:'E · Поток T-1 → T',sub:'метафора лага',i:C5_inst,f:C5_fac,cap:'<b>E</b> Левый блок = фактор(T-1), стрелка с IC, правый = инструмент(T). Подчёркивает суть метода.'},
+ {g:'F · Тепловая лента',sub:'яркость фона = сила',i:C6_inst,f:C6_fac,cap:'<b>F</b> Плотная таблица, фон строки красится по знаку и силе IC. Сканируется глазом за секунду.'},
+ {g:'G · Карточки-чемпионы',sub:'фокус на сильнейшем',i:C7_inst,f:C7_fac,cap:'<b>G</b> Первая карточка-герой (амбер-рамка) = сильнейшая связь. Факторы — топ-5 крупно + слабые свёрнуты.'},
+];
+const row=document.getElementById('row');
+C.forEach(c=>{
+ const h=document.createElement('div');h.className='grouphdr';h.innerHTML=`${c.g} <span>· ${c.sub}</span>`;row.appendChild(h);
+ [['Инструменты',c.i],['Факторы',c.f]].forEach(([name,fn])=>{
+   const el=document.createElement('div');el.className='item';
+   el.innerHTML=`<div class="phone"><div class="island"></div><div class="screen">${sb()}${fn()}</div></div><div class="cap">${c.cap}</div>`;
+   row.appendChild(el);
+ });
+});
+lucide.createIcons();
+</script>
+</body>
+</html>
